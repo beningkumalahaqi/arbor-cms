@@ -1,6 +1,7 @@
 import type { PageTemplateComponent } from "./types";
 import { HomeTemplate } from "./home-template";
 import { ContentTemplate } from "./content-template";
+import { ArticleTemplate } from "./article-template";
 
 const templateMap = new Map<string, PageTemplateComponent>();
 
@@ -16,6 +17,7 @@ function register(pageTypeName: string, template: PageTemplateComponent) {
 // Register templates — each page type must have exactly one template
 register("home", HomeTemplate);
 register("content", ContentTemplate);
+register("article", ArticleTemplate);
 
 export function getTemplate(
   pageTypeName: string

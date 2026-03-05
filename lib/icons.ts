@@ -108,6 +108,16 @@ export const availableIcons: IconDefinition[] = [
     label: "Info",
     path: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 16v-4 M12 8h.01",
   },
+  {
+    name: "article",
+    label: "Article",
+    path: "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M8 10h8 M8 14h5",
+  },
+  {
+    name: "upload",
+    label: "Upload",
+    path: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M17 8l-5-5-5 5 M12 3v12",
+  },
 ];
 
 export function getIconByName(name: string): IconDefinition | undefined {

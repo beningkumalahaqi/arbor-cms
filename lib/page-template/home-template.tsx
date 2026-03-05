@@ -9,13 +9,10 @@ export function HomeTemplate({ content }: PageTemplateProps) {
         </h1>
       )}
       {content.description && (
-        <div className="mt-6 max-w-2xl text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
-          {content.description.split("\n").map((paragraph, i) => (
-            <p key={i} className="mt-2 first:mt-0">
-              {paragraph}
-            </p>
-          ))}
-        </div>
+        <div
+          className="mt-6 max-w-2xl text-lg leading-relaxed text-zinc-600 dark:text-zinc-400 prose dark:prose-invert"
+          dangerouslySetInnerHTML={{ __html: content.description }}
+        />
       )}
       {!content.title && !content.description && (
         <p className="text-zinc-500">This home page has no content yet.</p>

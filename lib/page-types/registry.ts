@@ -1,6 +1,7 @@
 import { PageTypeDefinition } from "./types";
 import { homePageType } from "./home";
 import { contentPageType } from "./content";
+import { articlePageType } from "./article";
 
 const pageTypeMap = new Map<string, PageTypeDefinition>();
 
@@ -14,6 +15,7 @@ function register(pageType: PageTypeDefinition) {
 // Auto-register all built-in page types
 register(homePageType);
 register(contentPageType);
+register(articlePageType);
 
 export function getPageType(name: string): PageTypeDefinition | undefined {
   return pageTypeMap.get(name);
