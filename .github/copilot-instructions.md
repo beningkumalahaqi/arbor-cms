@@ -20,17 +20,18 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 ## Folder Structure
 - `app/` — Next.js App Router pages and API routes
 - `app/admin/` — Admin UI, protected by auth (layout checks session + redirects)
-- `app/api/` — REST endpoints: `bootstrap/`, `auth/`, `pages/`
+- `app/api/` — REST endpoints: `bootstrap/`, `auth/`, `pages/`, `page-types/settings/`
 - `app/[[...slug]]/` — Catch-all route resolving `fullPath` from database
-- `components/ui/` — Shared reusable UI components (Button, Input, Textarea, Select, Card, Table, FormField, PageLayout)
-- `components/admin/` — Admin-specific components (AdminShell with sidebar)
+- `components/ui/` — Shared reusable UI components (Button, Input, Textarea, Select, Card, Table, FormField, PageLayout, PageTypeIcon)
+- `components/admin/` — Admin-specific components (AdminShell with sidebar, PageTree)
 - `lib/auth/` — Authentication: credentials (bcrypt), session (cookie-based), helpers (requireAuth, requireRole)
 - `lib/page-types/` — Page Type definitions, registry, and type exports
 - `lib/page-template/` — Page Template components and registry (one template per page type)
 - `lib/properties/` — Property validation and default content builder
 - `lib/db.ts` — PrismaClient singleton using libSQL adapter
+- `lib/icons.ts` — Curated SVG icon definitions for page types (name, label, SVG path)
 - `lib/validation.ts` — Shared validators (email, slug, required fields)
-- `prisma/schema.prisma` — Database schema (User, Page models)
+- `prisma/schema.prisma` — Database schema (User, Page, PageTypeSettings models)
 - `docs/` — Release documentation
 - `guide/` — Developer guides for extending the CMS
 
@@ -44,15 +45,43 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - Self-relation `PageTree` for parent/children hierarchy
 - Indexed on: `parentId`, `fullPath`, `status`
 
+### PageTypeSettings
+- `id` (cuid), `pageTypeName` (unique), `icon` (string, default "file"), `allowedChildren` (JSON array as string, default "[]")
+- Stores admin-configurable settings per page type: display icon and which child page types are allowed
+- Settings are managed via the admin UI, not in code
+
 ## Page Types
 - Defined in code under `lib/page-types/`, one file per type
 - Registered in `lib/page-types/registry.ts` via `register()` call
 - Each type declares: `name`, `label`, `description`, `allowedProperties`
 - The `home` page type is a singleton — only one can exist, always serves `/`, cannot have a parent
+- Home page is auto-created during bootstrap (first SuperAdmin setup) if it doesn't exist
 - The `content` page type is generic and can exist anywhere in the tree
 - Each page type must have exactly one page template registered in `lib/page-template/registry.ts`
 - Adding a new page type: create definition file, register in page-types registry, create template, register in page-template registry
 - See `guide/how-to-create-a-new-page-type.md` for step-by-step
+
+## Page Type Settings
+- Stored in the `PageTypeSettings` model, managed via admin UI at `/admin/page-types`
+- **Icon**: Each page type can have a display icon selected from a curated set in `lib/icons.ts`
+- **Allowed Children**: Each page type can restrict which child page types are permitted underneath it
+- Settings are configured in the admin UI, not in code — no code changes needed to update icons or child restrictions
+- API endpoint: `GET/PUT /api/page-types/settings`
+- When `allowedChildren` is empty, all page types are allowed as children (no restriction)
+- The `home` page type defaults to icon `"home"` and allowed children `["content"]` on bootstrap
+
+## Page Tree
+- Pages are displayed as a collapsible tree in the admin UI (`/admin/pages`)
+- The tree view component is `components/admin/page-tree.tsx`
+- Tree nodes show the page type icon, page name, full path, type badge, and status badge
+- Nodes with children have expand/collapse toggles
+- The API supports `?tree=true` query parameter to return pages with children and settings in one request
+
+## Icon System
+- Curated SVG icon set defined in `lib/icons.ts` — each icon has a `name`, `label`, and `path` (SVG path data)
+- `PageTypeIcon` component in `components/ui/page-type-icon.tsx` renders icons from path data
+- Icons are selectable per page type in the admin settings UI
+- To add new icons: add entries to `availableIcons` array in `lib/icons.ts`
 
 ## Page Templates
 - Defined in `lib/page-template/`, one template component per page type
@@ -94,13 +123,15 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - Page content is stored as structured JSON
 - Admin UI consumes the same APIs as public features
 - Home page type is singleton: only one allowed, always serves `/`
+- Home page auto-created on bootstrap with default content and settings
 
 ## API Route Patterns
 - All mutations go through `/app/api/` routes
 - Auth checked via `getSession()` at the start of every handler
 - Validation happens server-side before any database write
-- Page creation enforces: valid page type, valid slug, unique fullPath, property validation
+- Page creation enforces: valid page type, valid slug, unique fullPath, property validation, allowed children check
 - Home page creation additionally enforces: singleton check, no parent, forced `fullPath = "/"`
+- Page type settings managed via `/api/page-types/settings` (GET for list, PUT for upsert)
 
 ## Security
 - Never trust client input
@@ -115,6 +146,8 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
   - Additional property types (add to PropertyType union)
   - Additional page types (add file + register in both page-types and page-template registries)
   - Additional page templates (one per page type, registered in page-template registry)
+  - Additional icons (add to `availableIcons` array in `lib/icons.ts`)
+  - Additional page type settings (extend PageTypeSettings model)
   - Workflow extensions (status is a string field)
 - No hardcoded logic blocking future growth
 

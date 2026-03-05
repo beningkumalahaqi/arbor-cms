@@ -17,16 +17,23 @@ Public URLs are generated directly from the page tree. When a visitor requests a
 ## Key Concepts
 
 ### Page Tree
-All pages live in a tree structure. Pages can be nested under other pages to create natural URL hierarchies like `/about`, `/about/team`, or `/blog/2026/hello-world`.
+All pages live in a tree structure. Pages can be nested under other pages to create natural URL hierarchies like `/about`, `/about/team`, or `/blog/2026/hello-world`. The admin panel displays pages as a collapsible tree with icons, making it easy to visualize your content hierarchy.
 
 ### Page Types
-Every page has a type (e.g., "Home", "Content") that determines what fields it has. Page Types are defined in code and automatically picked up by the system. The Home page type is special — only one can exist, and it always serves the root URL `/`.
+Every page has a type (e.g., "Home", "Content") that determines what fields it has. Page Types are defined in code and automatically picked up by the system. The Home page type is special — only one can exist, and it always serves the root URL `/`. A Home page is automatically created when you set up your first admin account.
+
+### Page Type Settings
+Each page type can be configured through the admin UI with:
+- **Icon** — Choose from a curated icon set to visually distinguish page types in the tree view.
+- **Allowed Children** — Restrict which page types can be created as children under a given type.
+
+These settings are managed entirely through the admin interface — no code changes required.
 
 ### Properties
 Properties are the content fields within a page — things like title, description, or body text. Each Page Type declares which properties it uses, what type they are (text, rich text, etc.), and whether they're required. This keeps content structured and validated.
 
 ### Admin Panel
-A clean, consistent admin interface at `/admin` lets you manage pages, view registered page types, and publish content. On first launch, you'll set up an initial administrator account and can start creating pages immediately.
+A clean, consistent admin interface at `/admin` lets you manage pages, view registered page types, configure page type settings, and publish content. On first launch, you'll set up an initial administrator account — a Home page is created automatically so you can start building immediately.
 
 ---
 
@@ -55,7 +62,7 @@ npx prisma migrate dev
 npm run dev
 ```
 
-On first visit, you'll be redirected to `/setup` to create your SuperAdmin account. After that, head to `/admin` to start building your page tree.
+On first visit, you'll be redirected to `/setup` to create your SuperAdmin account. A Home page is automatically created during setup. After that, head to `/admin` to start building your page tree.
 
 ---
 
@@ -68,11 +75,13 @@ app/              → Pages and API routes (Next.js App Router)
   [[...slug]]/    → Catch-all public page routing
 components/
   ui/             → Shared, reusable UI components
-  admin/          → Admin-specific components
+  admin/          → Admin-specific components (sidebar, page tree)
 lib/
   auth/           → Authentication and session management
   page-types/     → Page Type definitions and registry
+  page-template/  → Page Template components and registry
   properties/     → Property validation and defaults
+  icons.ts        → Curated SVG icon set for page types
 prisma/           → Database schema and migrations
 docs/             → Release notes and documentation
 guide/            → Developer guides for extending the CMS

@@ -117,6 +117,15 @@ register("blog-post", BlogPostTemplate);
 
 That's it. The page type and its template are now available system-wide.
 
+### 5. Configure Settings in the Admin UI (Optional)
+
+After registering a new page type, you can configure its settings through the admin interface at `/admin/page-types`:
+
+- **Icon** — Select a display icon for the page type from the curated icon set. This icon appears in the page tree and page type listings.
+- **Allowed Children** — Restrict which page types can be created as children under pages of this type. Leave empty to allow all page types.
+
+These settings are stored in the `PageTypeSettings` database model and don't require any code changes.
+
 ---
 
 ## What Happens Automatically
@@ -128,6 +137,8 @@ Once registered, your new page type will:
 - Have its properties rendered as form fields automatically
 - Be validated server-side when pages of this type are created or updated
 - Render using its registered page template on the public site
+- Be configurable with a custom icon and allowed children settings via the admin UI
+- Respect parent page's allowed children restrictions when creating new pages
 
 ---
 

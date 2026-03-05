@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { PageLayout } from "@/components/ui";
 import { Card } from "@/components/ui";
@@ -15,6 +15,20 @@ interface ParentPage {
   id: string;
   fullPath: string;
   slug: string;
+  pageType: string;
+}
+
+interface SettingsData {
+  pageTypeName: string;
+  icon: string;
+  allowedChildren: string;
+}
+
+interface ParsedSettings {
+  [pageTypeName: string]: {
+    icon: string;
+    allowedChildren: string[];
+  };
 }
 
 export default function NewPagePage() {
@@ -23,6 +37,7 @@ export default function NewPagePage() {
   const [error, setError] = useState("");
   const [pageTypes] = useState<PageTypeDefinition[]>(getAllPageTypes());
   const [parents, setParents] = useState<ParentPage[]>([]);
+  const [settings, setSettings] = useState<ParsedSettings>({});
   const [form, setForm] = useState({
     slug: "",
     pageType: "",
@@ -31,15 +46,48 @@ export default function NewPagePage() {
   const [content, setContent] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    fetch("/api/pages")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.pages) setParents(data.pages);
-      });
+    Promise.all([
+      fetch("/api/pages").then((r) => r.json()),
+      fetch("/api/page-types/settings").then((r) => r.json()),
+    ]).then(([pagesData, settingsData]) => {
+      if (pagesData.pages) setParents(pagesData.pages);
+      if (settingsData.settings) {
+        const map: ParsedSettings = {};
+        for (const s of settingsData.settings as SettingsData[]) {
+          map[s.pageTypeName] = {
+            icon: s.icon,
+            allowedChildren:
+              typeof s.allowedChildren === "string"
+                ? JSON.parse(s.allowedChildren)
+                : s.allowedChildren,
+          };
+        }
+        setSettings(map);
+      }
+    });
   }, []);
 
   const selectedType = pageTypes.find((pt) => pt.name === form.pageType);
   const isHome = form.pageType === "home";
+
+  // Filter page types based on parent's allowed children
+  const availablePageTypes = useMemo(() => {
+    if (!form.parentId) {
+      // Root-level: any type (except home if it already exists)
+      return pageTypes;
+    }
+    const parent = parents.find((p) => p.id === form.parentId);
+    if (!parent) return pageTypes;
+
+    const parentSetting = settings[parent.pageType];
+    if (!parentSetting || parentSetting.allowedChildren.length === 0) {
+      // No restriction
+      return pageTypes;
+    }
+    return pageTypes.filter((pt) =>
+      parentSetting.allowedChildren.includes(pt.name)
+    );
+  }, [form.parentId, parents, settings, pageTypes]);
 
   useEffect(() => {
     if (selectedType) {
@@ -54,6 +102,16 @@ export default function NewPagePage() {
       setForm((prev) => ({ ...prev, slug: "", parentId: "" }));
     }
   }, [selectedType, isHome]);
+
+  // Reset page type selection when parent changes and selected type not in available list
+  useEffect(() => {
+    if (
+      form.pageType &&
+      !availablePageTypes.some((pt) => pt.name === form.pageType)
+    ) {
+      setForm((prev) => ({ ...prev, pageType: "" }));
+    }
+  }, [availablePageTypes, form.pageType]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -92,13 +150,29 @@ export default function NewPagePage() {
             </div>
           )}
 
+          <FormField label="Parent Page">
+            <Select
+              value={form.parentId}
+              onChange={(e) =>
+                setForm({ ...form, parentId: e.target.value })
+              }
+              options={[
+                { value: "", label: "None (root level)" },
+                ...parents.map((p) => ({
+                  value: p.id,
+                  label: p.fullPath,
+                })),
+              ]}
+            />
+          </FormField>
+
           <FormField label="Page Type">
             <Select
               value={form.pageType}
               onChange={(e) =>
                 setForm({ ...form, pageType: e.target.value })
               }
-              options={pageTypes.map((pt) => ({
+              options={availablePageTypes.map((pt) => ({
                 value: pt.name,
                 label: pt.label,
               }))}
@@ -112,7 +186,7 @@ export default function NewPagePage() {
               Home page always serves <span className="font-mono font-medium">/</span>. Slug and parent are set automatically.
             </div>
           ) : (
-            <>
+            form.pageType && (
               <FormField label="Slug">
                 <Input
                   type="text"
@@ -123,23 +197,7 @@ export default function NewPagePage() {
                   required
                 />
               </FormField>
-
-              <FormField label="Parent Page">
-                <Select
-                  value={form.parentId}
-                  onChange={(e) =>
-                    setForm({ ...form, parentId: e.target.value })
-                  }
-                  options={[
-                    { value: "", label: "None (root level)" },
-                    ...parents.map((p) => ({
-                      value: p.id,
-                      label: p.fullPath,
-                    })),
-                  ]}
-                />
-              </FormField>
-            </>
+            )
           )}
 
           {selectedType && (
