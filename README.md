@@ -1,6 +1,6 @@
-# 🌲Arbor CMS Platform
+# Custom CMS Platform
 
-This project is a structured, extensible Content Management System built with Next.js, TypeScript, and Prisma.
+This project is a structured and extensible Content Management System built with Next.js, TypeScript, Prisma, and Tailwind CSS.
 
 It focuses on hierarchical content management, data-driven routing, and role-based administration without visual page builders or inline editing.
 
@@ -8,7 +8,7 @@ It focuses on hierarchical content management, data-driven routing, and role-bas
 
 ## Core Features
 
-- Admin interface for managing structured content
+- Admin interface with a consistent UI system
 - Hierarchical page tree with parent-child relationships
 - Dynamic routing resolved from stored page paths
 - Page Types defined in code and automatically registered
@@ -37,9 +37,11 @@ Page Types define:
 
 ## Admin Experience
 
-The Admin UI allows:
+The Admin UI is built using a shared set of reusable components styled with Tailwind CSS.
+
+It allows:
 - Managing the page tree
-- Creating and editing pages
+- Creating and editing pages through structured forms
 - Selecting registered Page Types
 - Publishing and unpublishing content
 
@@ -55,14 +57,15 @@ After that, all administrative access is permission-based.
 - Prisma ORM
 - SQLite for local development
 - PostgreSQL-ready schema
+- Tailwind CSS for consistent UI styling
 
 ---
 
 ## Project Goals
 
 - Predictable and maintainable content structure
+- Consistent and reusable UI components
 - Clear separation between content, routing, and rendering
 - Extensible architecture for future growth
-- Production-grade patterns with minimal surface area
 
 This project is designed as a CMS foundation rather than a visual website builder.
