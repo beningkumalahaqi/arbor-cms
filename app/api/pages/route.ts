@@ -35,8 +35,27 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Validate slug
-  if (!slug || !validateSlug(slug)) {
+  // Home page type: enforce singleton, fixed root path, no parent
+  if (pageType === "home") {
+    const existingHome = await prisma.page.findFirst({
+      where: { pageType: "home" },
+    });
+    if (existingHome) {
+      return NextResponse.json(
+        { error: "A home page already exists. Only one home page is allowed." },
+        { status: 409 }
+      );
+    }
+    if (parentId) {
+      return NextResponse.json(
+        { error: "Home page must be a root page and cannot have a parent." },
+        { status: 400 }
+      );
+    }
+  }
+
+  // Validate slug (not required for home type)
+  if (pageType !== "home" && (!slug || !validateSlug(slug))) {
     return NextResponse.json(
       {
         error:
@@ -46,19 +65,24 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Build fullPath
-  let fullPath = `/${slug}`;
-  if (parentId) {
-    const parent = await prisma.page.findUnique({
-      where: { id: parentId },
-    });
-    if (!parent) {
-      return NextResponse.json(
-        { error: "Parent page not found." },
-        { status: 400 }
-      );
+  // Build fullPath — home always serves /
+  let fullPath: string;
+  if (pageType === "home") {
+    fullPath = "/";
+  } else {
+    fullPath = `/${slug}`;
+    if (parentId) {
+      const parent = await prisma.page.findUnique({
+        where: { id: parentId },
+      });
+      if (!parent) {
+        return NextResponse.json(
+          { error: "Parent page not found." },
+          { status: 400 }
+        );
+      }
+      fullPath = `${parent.fullPath}/${slug}`;
     }
-    fullPath = `${parent.fullPath}/${slug}`;
   }
 
   // Check uniqueness
@@ -92,9 +116,9 @@ export async function POST(request: NextRequest) {
 
   const page = await prisma.page.create({
     data: {
-      slug,
+      slug: pageType === "home" ? "" : slug,
       fullPath,
-      parentId: parentId || null,
+      parentId: pageType === "home" ? null : parentId || null,
       pageType,
       content: JSON.stringify(mergedContent),
       status: "draft",

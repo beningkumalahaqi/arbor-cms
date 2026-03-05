@@ -39,6 +39,7 @@ export default function NewPagePage() {
   }, []);
 
   const selectedType = pageTypes.find((pt) => pt.name === form.pageType);
+  const isHome = form.pageType === "home";
 
   useEffect(() => {
     if (selectedType) {
@@ -48,7 +49,11 @@ export default function NewPagePage() {
       }
       setContent(defaults);
     }
-  }, [selectedType]);
+    // Home type: clear slug and parent since it always serves /
+    if (isHome) {
+      setForm((prev) => ({ ...prev, slug: "", parentId: "" }));
+    }
+  }, [selectedType, isHome]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -102,32 +107,40 @@ export default function NewPagePage() {
             />
           </FormField>
 
-          <FormField label="Slug">
-            <Input
-              type="text"
-              value={form.slug}
-              onChange={(e) => setForm({ ...form, slug: e.target.value })}
-              placeholder="my-page"
-              pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-              required
-            />
-          </FormField>
+          {isHome ? (
+            <div className="rounded-md bg-zinc-50 p-3 text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+              Home page always serves <span className="font-mono font-medium">/</span>. Slug and parent are set automatically.
+            </div>
+          ) : (
+            <>
+              <FormField label="Slug">
+                <Input
+                  type="text"
+                  value={form.slug}
+                  onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                  placeholder="my-page"
+                  pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+                  required
+                />
+              </FormField>
 
-          <FormField label="Parent Page">
-            <Select
-              value={form.parentId}
-              onChange={(e) =>
-                setForm({ ...form, parentId: e.target.value })
-              }
-              options={[
-                { value: "", label: "None (root level)" },
-                ...parents.map((p) => ({
-                  value: p.id,
-                  label: p.fullPath,
-                })),
-              ]}
-            />
-          </FormField>
+              <FormField label="Parent Page">
+                <Select
+                  value={form.parentId}
+                  onChange={(e) =>
+                    setForm({ ...form, parentId: e.target.value })
+                  }
+                  options={[
+                    { value: "", label: "None (root level)" },
+                    ...parents.map((p) => ({
+                      value: p.id,
+                      label: p.fullPath,
+                    })),
+                  ]}
+                />
+              </FormField>
+            </>
+          )}
 
           {selectedType && (
             <div className="space-y-4 border-t border-zinc-200 pt-4 dark:border-zinc-800">
