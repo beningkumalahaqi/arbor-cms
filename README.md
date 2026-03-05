@@ -20,7 +20,7 @@ Public URLs are generated directly from the page tree. When a visitor requests a
 All pages live in a tree structure. Pages can be nested under other pages to create natural URL hierarchies like `/about`, `/about/team`, or `/blog/2026/hello-world`. The admin panel displays pages as a collapsible tree with icons, making it easy to visualize your content hierarchy.
 
 ### Page Types
-Every page has a type (e.g., "Home", "Content") that determines what fields it has. Page Types are defined in code and automatically picked up by the system. The Home page type is special — only one can exist, and it always serves the root URL `/`. A Home page is automatically created when you set up your first admin account.
+Every page has a type (e.g., "Home", "Content", "Article") that determines what fields it has. Page Types are defined in code and automatically picked up by the system. The Home page type is special — only one can exist, and it always serves the root URL `/`. A Home page is automatically created when you set up your first admin account.
 
 ### Page Type Settings
 Each page type can be configured through the admin UI with:
@@ -30,7 +30,15 @@ Each page type can be configured through the admin UI with:
 These settings are managed entirely through the admin interface — no code changes required.
 
 ### Properties
-Properties are the content fields within a page — things like title, description, or body text. Each Page Type declares which properties it uses, what type they are (text, rich text, etc.), and whether they're required. This keeps content structured and validated.
+Properties are the content fields within a page — things like title, description, or body text. Each Page Type declares which properties it uses, what type they are (text, rich text, image, etc.), and whether they're required. This keeps content structured and validated.
+
+### File Management
+Arbor CMS includes a built-in file manager accessible from the admin panel. Upload, organize, rename, and delete files in a hierarchical folder structure stored in the `/storage` directory. When pages are created, corresponding folders are auto-created for organizational convenience. The image property type integrates with the file manager via a visual selector modal.
+
+The file explorer supports **drag-and-drop** to move files and folders between directories, and **sortable columns** — click any column header (Name, Size, Date Added, Modified) to sort, and click again to toggle ascending/descending order. Arrow indicators show the current sort direction.
+
+### Rich Text Editor
+Rich text properties use a full WYSIWYG editor powered by TipTap. The editor supports bold, italic, underline, strikethrough, headings, font sizes, text color, bullet/ordered lists, text alignment, blockquotes, code blocks, and horizontal rules. A raw HTML mode toggle lets you view and edit the underlying HTML directly, with changes syncing between modes.
 
 ### Admin Panel
 A clean, consistent admin interface at `/admin` lets you manage pages, view registered page types, configure page type settings, and publish content. On first launch, you'll set up an initial administrator account — a Home page is created automatically so you can start building immediately.
@@ -46,6 +54,7 @@ A clean, consistent admin interface at `/admin` lets you manage pages, view regi
 | Database | Prisma ORM — SQLite locally, PostgreSQL-ready |
 | Styling | Tailwind CSS |
 | Auth | Cookie-based sessions, bcrypt password hashing |
+| Rich Text | TipTap (ProseMirror) |
 
 ---
 
@@ -71,18 +80,22 @@ On first visit, you'll be redirected to `/setup` to create your SuperAdmin accou
 ```
 app/              → Pages and API routes (Next.js App Router)
   admin/          → Admin UI (protected)
+    files/        → File manager page
   api/            → REST endpoints for mutations
+    storage/      → File management API
   [[...slug]]/    → Catch-all public page routing
 components/
   ui/             → Shared, reusable UI components
-  admin/          → Admin-specific components (sidebar, page tree)
+  admin/          → Admin-specific components (sidebar, page tree, file explorer, rich text editor)
 lib/
   auth/           → Authentication and session management
   page-types/     → Page Type definitions and registry
   page-template/  → Page Template components and registry
   properties/     → Property validation and defaults
   icons.ts        → Curated SVG icon set for page types
+  storage.ts      → File system storage utility
 prisma/           → Database schema and migrations
+storage/          → File storage directory (git-ignored except .gitkeep)
 docs/             → Release notes and documentation
 guide/            → Developer guides for extending the CMS
 ```
