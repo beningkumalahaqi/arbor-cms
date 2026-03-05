@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { PageLayout } from "@/components/ui";
 import { Card } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Input } from "@/components/ui";
-import { Textarea } from "@/components/ui";
 import { FormField } from "@/components/ui";
 import { ImageField } from "@/components/admin/image-field";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
+import { PagePreview } from "@/components/admin/page-preview";
 import { getPageType, type PageTypeDefinition } from "@/lib/page-types";
 
 interface PageData {
@@ -33,6 +33,33 @@ export default function EditPagePage() {
   const [typeDef, setTypeDef] = useState<PageTypeDefinition | null>(null);
   const [content, setContent] = useState<Record<string, string>>({});
   const [status, setStatus] = useState("draft");
+  const [showPreview, setShowPreview] = useState(true);
+  const [splitPercent, setSplitPercent] = useState(50);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const dragging = useRef(false);
+
+  const handleMouseDown = useCallback(() => {
+    dragging.current = true;
+  }, []);
+
+  useEffect(() => {
+    function handleMouseMove(e: MouseEvent) {
+      if (!dragging.current || !containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const pct = (x / rect.width) * 100;
+      setSplitPercent(Math.min(80, Math.max(20, pct)));
+    }
+    function handleMouseUp() {
+      dragging.current = false;
+    }
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
 
   useEffect(() => {
     fetch(`/api/pages/${pageId}`)
@@ -113,13 +140,32 @@ export default function EditPagePage() {
       title={`Edit: ${page.fullPath}`}
       description={`Type: ${page.pageType} • Slug: ${page.slug}`}
       actions={
-        <Button variant="danger" onClick={handleDelete}>
-          Delete
-        </Button>
+        <div className="flex gap-2">
+          <a
+            href={page.fullPath}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
+            View Live
+          </a>
+          <Button
+            variant={showPreview ? "secondary" : "ghost"}
+            onClick={() => setShowPreview(!showPreview)}
+          >
+            {showPreview ? "Hide Preview" : "Show Preview"}
+          </Button>
+          <Button variant="danger" onClick={handleDelete}>
+            Delete
+          </Button>
+        </div>
       }
     >
-      <Card className="max-w-2xl">
-        <form onSubmit={handleSave} className="space-y-4">
+      <div ref={containerRef} className={showPreview ? "flex" : ""}>
+      <div style={showPreview ? { width: `${splitPercent}%` } : undefined} className={showPreview ? "min-w-0 shrink-0 pr-0" : ""}>
+      <Card className={showPreview ? "h-[calc(100vh-10rem)] overflow-hidden flex flex-col" : "max-w-2xl"}>
+        <form onSubmit={handleSave} className={`space-y-4 ${showPreview ? "flex-1 overflow-auto p-0" : ""}`}>
           {error && (
             <div className="rounded-md bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
               {error}
@@ -208,6 +254,29 @@ export default function EditPagePage() {
           </div>
         </form>
       </Card>
+      </div>
+
+      {showPreview && page && (
+        <>
+          {/* Drag handle */}
+          <div
+            onMouseDown={handleMouseDown}
+            className="flex w-2 shrink-0 cursor-col-resize items-center justify-center hover:bg-zinc-200 active:bg-zinc-300 dark:hover:bg-zinc-700 dark:active:bg-zinc-600"
+          >
+            <div className="h-8 w-0.5 rounded-full bg-zinc-300 dark:bg-zinc-600" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <Card className="sticky top-6 h-[calc(100vh-10rem)] overflow-hidden">
+              <PagePreview
+                pageType={page.pageType}
+                content={content}
+                fullPath={page.fullPath}
+              />
+            </Card>
+          </div>
+        </>
+      )}
+      </div>
     </PageLayout>
   );
 }
