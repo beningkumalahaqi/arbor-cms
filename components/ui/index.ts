@@ -6,3 +6,4 @@ export { Card, CardHeader, CardTitle, CardDescription } from "./card";
 export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "./table";
 export { FormField } from "./form-field";
 export { PageLayout } from "./page-layout";
+export { PageTypeIcon } from "./page-type-icon";

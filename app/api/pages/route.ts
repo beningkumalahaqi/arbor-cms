@@ -5,10 +5,23 @@ import { isValidPageType, getPageType } from "@/lib/page-types";
 import { validateProperties, buildDefaultContent } from "@/lib/properties";
 import { validateSlug } from "@/lib/validation";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const session = await getSession();
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const tree = searchParams.get("tree") === "true";
+
+  if (tree) {
+    // Return pages with children included for tree view
+    const pages = await prisma.page.findMany({
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+      include: { children: { orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] } },
+    });
+    const settings = await prisma.pageTypeSettings.findMany();
+    return NextResponse.json({ pages, settings });
   }
 
   const pages = await prisma.page.findMany({
@@ -81,7 +94,25 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-      fullPath = `${parent.fullPath}/${slug}`;
+
+      // Enforce allowed children
+      const parentSettings = await prisma.pageTypeSettings.findUnique({
+        where: { pageTypeName: parent.pageType },
+      });
+      if (parentSettings) {
+        const allowed: string[] = JSON.parse(parentSettings.allowedChildren);
+        if (allowed.length > 0 && !allowed.includes(pageType)) {
+          return NextResponse.json(
+            {
+              error: `Page type "${pageType}" is not allowed under a "${parent.pageType}" page.`,
+            },
+            { status: 400 }
+          );
+        }
+      }
+
+      fullPath =
+        parent.fullPath === "/" ? `/${slug}` : `${parent.fullPath}/${slug}`;
     }
   }
 

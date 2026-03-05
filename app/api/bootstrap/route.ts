@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 import { hasSuperAdmin, createSuperAdmin } from "@/lib/auth";
 import { validateEmail } from "@/lib/validation";
+import { getPageType } from "@/lib/page-types";
+import { buildDefaultContent } from "@/lib/properties";
 
 export async function POST(request: NextRequest) {
   const exists = await hasSuperAdmin();
@@ -36,6 +39,36 @@ export async function POST(request: NextRequest) {
   }
 
   const user = await createSuperAdmin(email, name, password);
+
+  // Auto-create the home page if it doesn't exist
+  const existingHome = await prisma.page.findFirst({
+    where: { pageType: "home" },
+  });
+  if (!existingHome) {
+    const homeType = getPageType("home")!;
+    const defaultContent = buildDefaultContent(homeType.allowedProperties);
+    await prisma.page.create({
+      data: {
+        slug: "",
+        fullPath: "/",
+        parentId: null,
+        pageType: "home",
+        content: JSON.stringify(defaultContent),
+        status: "published",
+      },
+    });
+
+    // Also create default settings for the home page type
+    await prisma.pageTypeSettings.upsert({
+      where: { pageTypeName: "home" },
+      create: {
+        pageTypeName: "home",
+        icon: "home",
+        allowedChildren: JSON.stringify(["content"]),
+      },
+      update: {},
+    });
+  }
 
   return NextResponse.json({ id: user.id, email: user.email, name: user.name });
 }

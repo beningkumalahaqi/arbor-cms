@@ -41,3 +41,14 @@ model Page {
   @@index([fullPath])
   @@index([status])
 }
+
+model PageTypeSettings {
+  id              String   @id @default(cuid())
+  pageTypeName    String   @unique
+  icon            String   @default("file")
+  allowedChildren String   @default("[]")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([pageTypeName])
+}
