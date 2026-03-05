@@ -1,71 +1,94 @@
-# Custom CMS Platform
+# Arbor CMS
 
-This project is a structured and extensible Content Management System built with Next.js, TypeScript, Prisma, and Tailwind CSS.
+A lightweight, structured Content Management System designed for developers who want full control over their content architecture.
 
-It focuses on hierarchical content management, data-driven routing, and role-based administration without visual page builders or inline editing.
-
----
-
-## Core Features
-
-- Admin interface with a consistent UI system
-- Hierarchical page tree with parent-child relationships
-- Dynamic routing resolved from stored page paths
-- Page Types defined in code and automatically registered
-- Schema-based content properties
-- Draft and published page states
-- Role-based access control (SuperAdmin initially)
+Built with Next.js, TypeScript, Prisma, and Tailwind CSS.
 
 ---
 
-## Content Model
+## What is Arbor CMS?
 
-Pages are stored as structured data rather than being tied to the filesystem.
+Arbor CMS organizes content as a hierarchical page tree — similar to how files are structured in folders. Each page has a type, a position in the tree, and structured content fields. There are no drag-and-drop builders or inline editors. Everything is managed through clean, form-based admin screens.
 
-Each page:
-- Belongs to a page tree
-- Has a resolved URL path
-- Uses a registered Page Type
-- Stores content as validated structured properties
-
-Page Types define:
-- Allowed properties
-- Validation rules
-- Default values
+Public URLs are generated directly from the page tree. When a visitor requests a URL, the system looks up the matching page, checks that it's published, and renders it. No manual route configuration needed.
 
 ---
 
-## Admin Experience
+## Key Concepts
 
-The Admin UI is built using a shared set of reusable components styled with Tailwind CSS.
+### Page Tree
+All pages live in a tree structure. Pages can be nested under other pages to create natural URL hierarchies like `/about`, `/about/team`, or `/blog/2026/hello-world`.
 
-It allows:
-- Managing the page tree
-- Creating and editing pages through structured forms
-- Selecting registered Page Types
-- Publishing and unpublishing content
+### Page Types
+Every page has a type (e.g., "Home", "Content") that determines what fields it has. Page Types are defined in code and automatically picked up by the system. The Home page type is special — only one can exist, and it always serves the root URL `/`.
 
-On first launch, the system requires creation of an initial SuperAdmin account.
-After that, all administrative access is permission-based.
+### Properties
+Properties are the content fields within a page — things like title, description, or body text. Each Page Type declares which properties it uses, what type they are (text, rich text, etc.), and whether they're required. This keeps content structured and validated.
 
----
-
-## Technology Overview
-
-- Next.js (App Router)
-- TypeScript
-- Prisma ORM
-- SQLite for local development
-- PostgreSQL-ready schema
-- Tailwind CSS for consistent UI styling
+### Admin Panel
+A clean, consistent admin interface at `/admin` lets you manage pages, view registered page types, and publish content. On first launch, you'll set up an initial administrator account and can start creating pages immediately.
 
 ---
 
-## Project Goals
+## Tech Stack
 
-- Predictable and maintainable content structure
-- Consistent and reusable UI components
-- Clear separation between content, routing, and rendering
-- Extensible architecture for future growth
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js (App Router) |
+| Language | TypeScript |
+| Database | Prisma ORM — SQLite locally, PostgreSQL-ready |
+| Styling | Tailwind CSS |
+| Auth | Cookie-based sessions, bcrypt password hashing |
+
+---
+
+## Getting Started
+
+```bash
+# Install dependencies
+npm install
+
+# Set up the database
+npx prisma migrate dev
+
+# Start the dev server
+npm run dev
+```
+
+On first visit, you'll be redirected to `/setup` to create your SuperAdmin account. After that, head to `/admin` to start building your page tree.
+
+---
+
+## Project Structure
+
+```
+app/              → Pages and API routes (Next.js App Router)
+  admin/          → Admin UI (protected)
+  api/            → REST endpoints for mutations
+  [[...slug]]/    → Catch-all public page routing
+components/
+  ui/             → Shared, reusable UI components
+  admin/          → Admin-specific components
+lib/
+  auth/           → Authentication and session management
+  page-types/     → Page Type definitions and registry
+  properties/     → Property validation and defaults
+prisma/           → Database schema and migrations
+docs/             → Release notes and documentation
+guide/            → Developer guides for extending the CMS
+```
+
+---
+
+## Guides
+
+- [How to Create a New Page Type](guide/how-to-create-a-new-page-type.md)
+- [How to Create New Properties](guide/how-to-create-new-properties.md)
+
+---
+
+## License
+
+Private project.
 
 This project is designed as a CMS foundation rather than a visual website builder.
