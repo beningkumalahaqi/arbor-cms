@@ -1,0 +1,54 @@
+// Prisma schema for Arbor CMS
+// Uses SQLite for local dev, PostgreSQL-compatible design
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      String   @default("superadmin")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([role])
+}
+
+model Page {
+  id        String   @id @default(cuid())
+  parentId  String?
+  slug      String
+  fullPath  String   @unique
+  pageType  String
+  status    String   @default("draft")
+  content   String   @default("{}")
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parent   Page?  @relation("PageTree", fields: [parentId], references: [id])
+  children Page[] @relation("PageTree")
+
+  @@index([parentId])
+  @@index([fullPath])
+  @@index([status])
+}
+
+model PageTypeSettings {
+  id              String   @id @default(cuid())
+  pageTypeName    String   @unique
+  icon            String   @default("file")
+  allowedChildren String   @default("[]")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([pageTypeName])
+}

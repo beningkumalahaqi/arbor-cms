@@ -1,68 +1,119 @@
-# 🌲Arbor CMS Platform
+# Arbor CMS
 
-This project is a structured, extensible Content Management System built with Next.js, TypeScript, and Prisma.
+A lightweight, structured Content Management System designed for developers who want full control over their content architecture.
 
-It focuses on hierarchical content management, data-driven routing, and role-based administration without visual page builders or inline editing.
-
----
-
-## Core Features
-
-- Admin interface for managing structured content
-- Hierarchical page tree with parent-child relationships
-- Dynamic routing resolved from stored page paths
-- Page Types defined in code and automatically registered
-- Schema-based content properties
-- Draft and published page states
-- Role-based access control (SuperAdmin initially)
+Built with Next.js, TypeScript, Prisma, and Tailwind CSS.
 
 ---
 
-## Content Model
+## What is Arbor CMS?
 
-Pages are stored as structured data rather than being tied to the filesystem.
+Arbor CMS organizes content as a hierarchical page tree — similar to how files are structured in folders. Each page has a type, a position in the tree, and structured content fields. There are no drag-and-drop builders or inline editors. Everything is managed through clean, form-based admin screens.
 
-Each page:
-- Belongs to a page tree
-- Has a resolved URL path
-- Uses a registered Page Type
-- Stores content as validated structured properties
-
-Page Types define:
-- Allowed properties
-- Validation rules
-- Default values
+Public URLs are generated directly from the page tree. When a visitor requests a URL, the system looks up the matching page, checks that it's published, and renders it. No manual route configuration needed.
 
 ---
 
-## Admin Experience
+## Key Concepts
 
-The Admin UI allows:
-- Managing the page tree
-- Creating and editing pages
-- Selecting registered Page Types
-- Publishing and unpublishing content
+### Page Tree
+All pages live in a tree structure. Pages can be nested under other pages to create natural URL hierarchies like `/about`, `/about/team`, or `/blog/2026/hello-world`. The admin panel displays pages as a collapsible tree with icons, making it easy to visualize your content hierarchy.
 
-On first launch, the system requires creation of an initial SuperAdmin account.
-After that, all administrative access is permission-based.
+### Page Types
+Every page has a type (e.g., "Home", "Content", "Article") that determines what fields it has. Page Types are defined in code and automatically picked up by the system. The Home page type is special — only one can exist, and it always serves the root URL `/`. A Home page is automatically created when you set up your first admin account.
+
+### Page Type Settings
+Each page type can be configured through the admin UI with:
+- **Icon** — Choose from a curated icon set to visually distinguish page types in the tree view.
+- **Allowed Children** — Restrict which page types can be created as children under a given type.
+
+These settings are managed entirely through the admin interface — no code changes required.
+
+### Properties
+Properties are the content fields within a page — things like title, description, or body text. Each Page Type declares which properties it uses, what type they are (text, rich text, image, etc.), and whether they're required. This keeps content structured and validated.
+
+### File Management
+Arbor CMS includes a built-in file manager accessible from the admin panel. Upload, organize, rename, and delete files in a hierarchical folder structure stored in the `/storage` directory. When pages are created, corresponding folders are auto-created for organizational convenience. The image property type integrates with the file manager via a visual selector modal.
+
+The file explorer supports **drag-and-drop** to move files and folders between directories, and **sortable columns** — click any column header (Name, Size, Date Added, Modified) to sort, and click again to toggle ascending/descending order. Arrow indicators show the current sort direction.
+
+### Rich Text Editor
+Rich text properties use a full WYSIWYG editor powered by TipTap. The editor supports bold, italic, underline, strikethrough, headings, font sizes, text color, bullet/ordered lists, text alignment, blockquotes, code blocks, and horizontal rules. A raw HTML mode toggle lets you view and edit the underlying HTML directly, with changes syncing between modes. The editor area has a capped max-height and scrolls when content is large, keeping the form layout manageable.
+
+### Page Editor with Live Preview
+When editing a page, the admin shows a split-pane layout: the edit form on the left and a live preview on the right. The preview renders using the same page templates as the public site, updating in real time as you type. A draggable divider between the panels lets you adjust the split to your preference (20%–80%). You can toggle the preview on or off, and a "View Live" link opens the published page in a new tab.
+
+### Admin Panel
+A clean, consistent admin interface at `/admin` lets you manage pages, view registered page types, configure page type settings, and publish content. The sidebar is collapsible — click the chevron to shrink it to icon-only mode for more workspace. On first launch, you'll set up an initial administrator account — a Home page is created automatically so you can start building immediately.
 
 ---
 
-## Technology Overview
+## Tech Stack
 
-- Next.js (App Router)
-- TypeScript
-- Prisma ORM
-- SQLite for local development
-- PostgreSQL-ready schema
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js (App Router) |
+| Language | TypeScript |
+| Database | Prisma ORM — SQLite locally, PostgreSQL-ready |
+| Styling | Tailwind CSS |
+| Auth | Cookie-based sessions, bcrypt password hashing |
+| Rich Text | TipTap (ProseMirror) |
 
 ---
 
-## Project Goals
+## Getting Started
 
-- Predictable and maintainable content structure
-- Clear separation between content, routing, and rendering
-- Extensible architecture for future growth
-- Production-grade patterns with minimal surface area
+```bash
+# Install dependencies
+npm install
+
+# Set up the database
+npx prisma migrate dev
+
+# Start the dev server
+npm run dev
+```
+
+On first visit, you'll be redirected to `/setup` to create your SuperAdmin account. A Home page is automatically created during setup. After that, head to `/admin` to start building your page tree.
+
+---
+
+## Project Structure
+
+```
+app/              → Pages and API routes (Next.js App Router)
+  admin/          → Admin UI (protected)
+    files/        → File manager page
+  api/            → REST endpoints for mutations
+    storage/      → File management API
+  [[...slug]]/    → Catch-all public page routing
+components/
+  ui/             → Shared, reusable UI components
+  admin/          → Admin-specific components (sidebar, page tree, page preview, file explorer, rich text editor)
+lib/
+  auth/           → Authentication and session management
+  page-types/     → Page Type definitions and registry
+  page-template/  → Page Template components and registry
+  properties/     → Property validation and defaults
+  icons.ts        → Curated SVG icon set for page types
+  storage.ts      → File system storage utility
+prisma/           → Database schema and migrations
+storage/          → File storage directory (git-ignored except .gitkeep)
+docs/             → Release notes and documentation
+guide/            → Developer guides for extending the CMS
+```
+
+---
+
+## Guides
+
+- [How to Create a New Page Type](guide/how-to-create-a-new-page-type.md)
+- [How to Create New Properties](guide/how-to-create-new-properties.md)
+
+---
+
+## License
+
+Private project.
 
 This project is designed as a CMS foundation rather than a visual website builder.
