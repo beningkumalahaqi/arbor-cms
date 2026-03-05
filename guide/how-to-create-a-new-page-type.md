@@ -65,7 +65,57 @@ import { blogPostPageType } from "./blog-post";
 register(blogPostPageType);
 ```
 
-That's it. The page type is now available system-wide.
+### 3. Create a Page Template
+
+Every page type must have exactly one page template — a React component that controls how the page renders on the public site. Create a new file in `lib/page-template/`.
+
+**Example:** `lib/page-template/blog-post-template.tsx`
+
+```tsx
+import type { PageTemplateProps } from "./types";
+
+export function BlogPostTemplate({ content }: PageTemplateProps) {
+  return (
+    <div className="mx-auto max-w-3xl px-6 py-16">
+      <article>
+        {content.title && (
+          <h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+            {content.title}
+          </h1>
+        )}
+        {content.summary && (
+          <p className="mt-4 text-lg text-zinc-600 dark:text-zinc-400">
+            {content.summary}
+          </p>
+        )}
+        {content.body && (
+          <div className="prose mt-8 max-w-none text-zinc-700 dark:text-zinc-300">
+            {content.body.split("\n").map((paragraph, i) => (
+              <p key={i}>{paragraph}</p>
+            ))}
+          </div>
+        )}
+      </article>
+    </div>
+  );
+}
+```
+
+### 4. Register the Page Template
+
+Open `lib/page-template/registry.ts` and:
+
+1. Import your template component.
+2. Call `register()` with the page type name and template.
+
+```typescript
+import { BlogPostTemplate } from "./blog-post-template";
+
+// Add alongside existing registrations
+register("blog-post", BlogPostTemplate);
+```
+
+That's it. The page type and its template are now available system-wide.
 
 ---
 
@@ -77,6 +127,7 @@ Once registered, your new page type will:
 - Be selectable when creating a new page in the admin UI
 - Have its properties rendered as form fields automatically
 - Be validated server-side when pages of this type are created or updated
+- Render using its registered page template on the public site
 
 ---
 
@@ -91,6 +142,16 @@ interface PageTypeDefinition {
 }
 ```
 
+## Reference: PageTemplateProps
+
+```typescript
+interface PageTemplateProps {
+  content: PageContent;   // The page's content fields
+  pageType: string;       // The page type name
+  fullPath: string;       // The page's URL path
+}
+```
+
 Each property in `allowedProperties` follows the `PropertyDefinition` interface. See the [How to Create New Properties](how-to-create-new-properties.md) guide for details on supported property types and how to add custom ones.
 
 ---
@@ -98,6 +159,7 @@ Each property in `allowedProperties` follows the `PropertyDefinition` interface.
 ## Tips
 
 - Use kebab-case for the `name` field (e.g., `"blog-post"`, `"landing-page"`).
+- Name template files to match the page type (e.g., `blog-post` → `blog-post-template.tsx`).
 - The `name` must be unique across all registered page types.
 - If your page type has special routing rules (like the Home type), enforcement logic goes in `app/api/pages/route.ts`, not in the type definition.
 - Keep property lists focused — a type with too many fields makes the admin form unwieldy.

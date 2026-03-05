@@ -26,6 +26,7 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - `components/admin/` — Admin-specific components (AdminShell with sidebar)
 - `lib/auth/` — Authentication: credentials (bcrypt), session (cookie-based), helpers (requireAuth, requireRole)
 - `lib/page-types/` — Page Type definitions, registry, and type exports
+- `lib/page-template/` — Page Template components and registry (one template per page type)
 - `lib/properties/` — Property validation and default content builder
 - `lib/db.ts` — PrismaClient singleton using libSQL adapter
 - `lib/validation.ts` — Shared validators (email, slug, required fields)
@@ -49,8 +50,17 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - Each type declares: `name`, `label`, `description`, `allowedProperties`
 - The `home` page type is a singleton — only one can exist, always serves `/`, cannot have a parent
 - The `content` page type is generic and can exist anywhere in the tree
-- Adding a new page type: create file, define PageTypeDefinition, import and register in registry.ts
+- Each page type must have exactly one page template registered in `lib/page-template/registry.ts`
+- Adding a new page type: create definition file, register in page-types registry, create template, register in page-template registry
 - See `guide/how-to-create-a-new-page-type.md` for step-by-step
+
+## Page Templates
+- Defined in `lib/page-template/`, one template component per page type
+- Registered in `lib/page-template/registry.ts` via `register()` call — maps page type name to a React component
+- Each template receives `PageTemplateProps`: `content`, `pageType`, `fullPath`
+- The catch-all route (`app/[[...slug]]/`) looks up the template by page type name and renders it
+- Templates are server components — kept separate from page type definitions to avoid pulling React into client bundles
+- Adding a new template: create component file in `lib/page-template/`, import and register in registry.ts
 
 ## Properties System
 - Properties are defined per Page Type via `PropertyDefinition[]`
@@ -103,7 +113,8 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - Architecture must allow:
   - Additional roles (role is a string, not enum)
   - Additional property types (add to PropertyType union)
-  - Additional page types (add file + register)
+  - Additional page types (add file + register in both page-types and page-template registries)
+  - Additional page templates (one per page type, registered in page-template registry)
   - Workflow extensions (status is a string field)
 - No hardcoded logic blocking future growth
 
