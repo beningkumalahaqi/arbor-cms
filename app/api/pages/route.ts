@@ -4,6 +4,7 @@ import { getSession } from "@/lib/auth";
 import { isValidPageType, getPageType } from "@/lib/page-types";
 import { validateProperties, buildDefaultContent } from "@/lib/properties";
 import { validateSlug } from "@/lib/validation";
+import { ensurePageFolder } from "@/lib/storage";
 
 export async function GET(request: NextRequest) {
   const session = await getSession();
@@ -155,6 +156,13 @@ export async function POST(request: NextRequest) {
       status: "draft",
     },
   });
+
+  // Auto-create a corresponding folder in storage
+  try {
+    await ensurePageFolder(fullPath);
+  } catch {
+    // Non-critical: don't fail page creation if folder creation fails
+  }
 
   return NextResponse.json({ page }, { status: 201 });
 }

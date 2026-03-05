@@ -10,11 +10,10 @@ export function ContentTemplate({ content, pageType }: PageTemplateProps) {
           </h1>
         )}
         {content.description && (
-          <div className="prose mt-6 max-w-none text-zinc-700 dark:text-zinc-300">
-            {content.description.split("\n").map((paragraph, i) => (
-              <p key={i}>{paragraph}</p>
-            ))}
-          </div>
+          <div
+            className="prose mt-6 max-w-none text-zinc-700 dark:prose-invert dark:text-zinc-300"
+            dangerouslySetInnerHTML={{ __html: content.description }}
+          />
         )}
         {!content.title && !content.description && (
           <p className="text-zinc-500">

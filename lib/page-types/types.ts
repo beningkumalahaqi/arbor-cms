@@ -1,4 +1,4 @@
-export type PropertyType = "text" | "richText";
+export type PropertyType = "text" | "richText" | "image";
 
 export interface PropertyDefinition {
   name: string;

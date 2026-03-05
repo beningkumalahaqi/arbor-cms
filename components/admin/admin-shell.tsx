@@ -13,6 +13,7 @@ interface AdminShellProps {
 const navItems = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/pages", label: "Pages" },
+  { href: "/admin/files", label: "Files" },
   { href: "/admin/page-types", label: "Page Types" },
 ];
 

@@ -20,14 +20,15 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 ## Folder Structure
 - `app/` — Next.js App Router pages and API routes
 - `app/admin/` — Admin UI, protected by auth (layout checks session + redirects)
-- `app/api/` — REST endpoints: `bootstrap/`, `auth/`, `pages/`, `page-types/settings/`
+- `app/api/` — REST endpoints: `bootstrap/`, `auth/`, `pages/`, `page-types/settings/`, `storage/`
 - `app/[[...slug]]/` — Catch-all route resolving `fullPath` from database
 - `components/ui/` — Shared reusable UI components (Button, Input, Textarea, Select, Card, Table, FormField, PageLayout, PageTypeIcon)
-- `components/admin/` — Admin-specific components (AdminShell with sidebar, PageTree)
+- `components/admin/` — Admin-specific components (AdminShell with sidebar, PageTree, FileExplorer with drag-and-drop and sortable columns, ImageSelectorModal, ImageField, RichTextEditor)
 - `lib/auth/` — Authentication: credentials (bcrypt), session (cookie-based), helpers (requireAuth, requireRole)
 - `lib/page-types/` — Page Type definitions, registry, and type exports
 - `lib/page-template/` — Page Template components and registry (one template per page type)
 - `lib/properties/` — Property validation and default content builder
+- `lib/storage.ts` — File system storage utility (CRUD, move, path safety, mime types)
 - `lib/db.ts` — PrismaClient singleton using libSQL adapter
 - `lib/icons.ts` — Curated SVG icon definitions for page types (name, label, SVG path)
 - `lib/validation.ts` — Shared validators (email, slug, required fields)
@@ -57,6 +58,7 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - The `home` page type is a singleton — only one can exist, always serves `/`, cannot have a parent
 - Home page is auto-created during bootstrap (first SuperAdmin setup) if it doesn't exist
 - The `content` page type is generic and can exist anywhere in the tree
+- The `article` page type has title (text), image banner (image), and content (richText) properties
 - Each page type must have exactly one page template registered in `lib/page-template/registry.ts`
 - Adding a new page type: create definition file, register in page-types registry, create template, register in page-template registry
 - See `guide/how-to-create-a-new-page-type.md` for step-by-step
@@ -93,16 +95,18 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 
 ## Properties System
 - Properties are defined per Page Type via `PropertyDefinition[]`
-- Supported types: `text`, `richText` (extensible via `PropertyType` union)
+- Supported types: `text`, `richText`, `image` (extensible via `PropertyType` union)
 - Each property has: `name`, `label`, `type`, `required?`, `defaultValue?`
 - Content stored as JSON string on the Page model
 - Admin forms render dynamically based on property definitions
+- `text` renders an `Input`, `richText` renders the TipTap `RichTextEditor`, `image` renders the `ImageField` with modal selector
 - Validation runs server-side in API routes via `validateProperties()`
 - Adding a new property type: extend `PropertyType`, update admin form rendering, update validation if needed
 - See `guide/how-to-create-new-properties.md` for step-by-step
 
 ## UI & Tailwind Rules
 - Tailwind CSS is the only styling solution
+- Tailwind Typography plugin (`@tailwindcss/typography`) used for `prose` classes in rich text rendering
 - No inline styles
 - No duplicated utility class patterns across files
 - Reusable UI components must live in `/components/ui`
@@ -130,8 +134,11 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - Auth checked via `getSession()` at the start of every handler
 - Validation happens server-side before any database write
 - Page creation enforces: valid page type, valid slug, unique fullPath, property validation, allowed children check
+- Page creation auto-creates a corresponding folder in `/storage/pages/` matching the page hierarchy
 - Home page creation additionally enforces: singleton check, no parent, forced `fullPath = "/"`
 - Page type settings managed via `/api/page-types/settings` (GET for list, PUT for upsert)
+- File management via `/api/storage` (GET list, POST create/upload/rename/move, DELETE)
+- File serving via `/api/storage/file/[...path]` (GET with caching headers)
 
 ## Security
 - Never trust client input
@@ -139,6 +146,9 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - UI permission checks are secondary
 - Passwords hashed with bcrypt (12 rounds)
 - Session cookies are httpOnly, sameSite lax, secure in production
+- File uploads: max 10MB, blocked executable extensions (.exe, .bat, .sh, .js, .php, etc.)
+- File names sanitized — only alphanumeric, hyphens, underscores, dots, spaces
+- Path traversal prevention on all storage operations
 
 ## Extensibility
 - Architecture must allow:

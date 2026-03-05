@@ -8,6 +8,8 @@ import { Button } from "@/components/ui";
 import { Input } from "@/components/ui";
 import { Textarea } from "@/components/ui";
 import { FormField } from "@/components/ui";
+import { ImageField } from "@/components/admin/image-field";
+import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { getPageType, type PageTypeDefinition } from "@/lib/page-types";
 
 interface PageData {
@@ -169,14 +171,22 @@ export default function EditPagePage() {
                       }
                       required={prop.required}
                     />
-                  ) : (
-                    <Textarea
+                  ) : prop.type === "image" ? (
+                    <ImageField
                       value={content[prop.name] ?? ""}
-                      onChange={(e) =>
-                        setContent({ ...content, [prop.name]: e.target.value })
+                      onChange={(val) =>
+                        setContent({ ...content, [prop.name]: val })
                       }
                       required={prop.required}
-                      rows={6}
+                    />
+                  ) : (
+                    <RichTextEditor
+                      value={content[prop.name] ?? ""}
+                      onChange={(val) =>
+                        setContent({ ...content, [prop.name]: val })
+                      }
+                      required={prop.required}
+                      rows={8}
                     />
                   )}
                 </FormField>

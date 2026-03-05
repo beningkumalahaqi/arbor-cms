@@ -38,23 +38,23 @@ No other changes needed. The admin form will render the new field automatically.
 
 ## Adding a New Property Type
 
-When you need a field type that doesn't exist yet (e.g., `number`, `date`, `image`, `boolean`), follow these steps:
+When you need a field type that doesn't exist yet (e.g., `number`, `date`, `boolean`), follow these steps:
 
 ### 1. Extend the PropertyType union
 
 Open `lib/page-types/types.ts` and add your type to the union:
 
 ```typescript
-// Before
-export type PropertyType = "text" | "richText";
+// Current
+export type PropertyType = "text" | "richText" | "image";
 
 // After
-export type PropertyType = "text" | "richText" | "number";
+export type PropertyType = "text" | "richText" | "image" | "number";
 ```
 
 ### 2. Update the admin form rendering
 
-Open `app/admin/pages/new/page.tsx` and `app/admin/pages/[id]/page.tsx`. Find where properties are rendered (the section that checks `prop.type`). Add a case for your new type:
+Open `app/admin/pages/new/page.tsx` and `app/admin/pages/[id]/page.tsx`. Find where properties are rendered (the section that checks `prop.type`). Add a case for your new type. Currently, `text` renders an `Input`, `image` renders an `ImageField` with modal selector, and `richText` renders the `RichTextEditor`. Add a new branch for your type:
 
 ```tsx
 {prop.type === "text" ? (
@@ -128,7 +128,7 @@ export function validateProperties(
 interface PropertyDefinition {
   name: string;           // Field key in the content JSON
   label: string;          // Display label in admin forms
-  type: PropertyType;     // "text" | "richText" | your custom type
+  type: PropertyType;     // "text" | "richText" | "image" | your custom type
   required?: boolean;     // Whether the field must be filled
   defaultValue?: string;  // Pre-filled value on page creation
 }
@@ -143,7 +143,8 @@ All property values are stored as strings in a JSON blob on the Page model. The 
 | Type | Rendered As | Description |
 |------|-----------|-------------|
 | `text` | `<Input>` | Single-line text input |
-| `richText` | `<Textarea>` | Multi-line text area |
+| `richText` | `<RichTextEditor>` | TipTap WYSIWYG editor with raw HTML toggle |
+| `image` | `<ImageField>` | Image selector with modal browser from `/storage` |
 
 ---
 
