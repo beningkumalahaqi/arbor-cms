@@ -327,12 +327,15 @@ export function RichTextEditor({ value, onChange, rows = 10 }: RichTextEditorPro
           onChange={handleRawChange}
           rows={rows}
           className="w-full resize-y bg-zinc-950 px-4 py-3 font-mono text-sm text-green-400 focus:outline-none dark:bg-zinc-950"
+          style={{ maxHeight: `${rows * 3}rem` }}
           spellCheck={false}
         />
       ) : editor ? (
         <>
           <EditorToolbar editor={editor} />
-          <EditorContent editor={editor} />
+          <div className="overflow-auto" style={{ maxHeight: `${rows * 3}rem` }}>
+            <EditorContent editor={editor} />
+          </div>
         </>
       ) : null}
     </div>

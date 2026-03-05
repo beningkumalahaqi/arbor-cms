@@ -23,7 +23,7 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - `app/api/` — REST endpoints: `bootstrap/`, `auth/`, `pages/`, `page-types/settings/`, `storage/`
 - `app/[[...slug]]/` — Catch-all route resolving `fullPath` from database
 - `components/ui/` — Shared reusable UI components (Button, Input, Textarea, Select, Card, Table, FormField, PageLayout, PageTypeIcon)
-- `components/admin/` — Admin-specific components (AdminShell with sidebar, PageTree, FileExplorer with drag-and-drop and sortable columns, ImageSelectorModal, ImageField, RichTextEditor)
+- `components/admin/` — Admin-specific components (AdminShell with collapsible sidebar, PageTree, PagePreview, FileExplorer with drag-and-drop and sortable columns, ImageSelectorModal, ImageField, RichTextEditor)
 - `lib/auth/` — Authentication: credentials (bcrypt), session (cookie-based), helpers (requireAuth, requireRole)
 - `lib/page-types/` — Page Type definitions, registry, and type exports
 - `lib/page-template/` — Page Template components and registry (one template per page type)
@@ -90,7 +90,8 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - Registered in `lib/page-template/registry.ts` via `register()` call — maps page type name to a React component
 - Each template receives `PageTemplateProps`: `content`, `pageType`, `fullPath`
 - The catch-all route (`app/[[...slug]]/`) looks up the template by page type name and renders it
-- Templates are server components — kept separate from page type definitions to avoid pulling React into client bundles
+- Templates are also used by the admin preview panel (`components/admin/page-preview.tsx`) to render live previews during editing
+- Templates must be compatible with both server and client rendering since the preview runs client-side
 - Adding a new template: create component file in `lib/page-template/`, import and register in registry.ts
 
 ## Properties System
@@ -104,10 +105,25 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - Adding a new property type: extend `PropertyType`, update admin form rendering, update validation if needed
 - See `guide/how-to-create-new-properties.md` for step-by-step
 
+## Admin Shell
+- The `AdminShell` component (`components/admin/admin-shell.tsx`) provides the sidebar layout for all admin pages
+- Sidebar is collapsible — toggled via a chevron button in the header
+- Collapsed mode shows SVG icons for each nav item and an icon-only logout button
+- Expanded mode shows full nav labels and user info
+- Nav icons are defined as a `navIcons` record mapping routes to SVG elements
+
+## Page Editor Preview
+- The edit page (`app/admin/pages/[id]/page.tsx`) has a split-pane layout with editor and live preview
+- Preview is rendered by `components/admin/page-preview.tsx` using the registered page templates
+- The split is resizable via a draggable divider (mouse drag, clamped 20%–80%)
+- Preview can be toggled on/off via a button in the page header
+- A "View Live" link in the header opens the page's public URL in a new tab
+- Both the editor form and preview panel are independently scrollable
+
 ## UI & Tailwind Rules
 - Tailwind CSS is the only styling solution
 - Tailwind Typography plugin (`@tailwindcss/typography`) used for `prose` classes in rich text rendering
-- No inline styles
+- Inline styles are allowed only for dynamic values (e.g., resizable split widths, editor max-height)
 - No duplicated utility class patterns across files
 - Reusable UI components must live in `/components/ui`
 - Use variants and composition instead of one-off styles

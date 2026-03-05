@@ -38,10 +38,13 @@ Arbor CMS includes a built-in file manager accessible from the admin panel. Uplo
 The file explorer supports **drag-and-drop** to move files and folders between directories, and **sortable columns** — click any column header (Name, Size, Date Added, Modified) to sort, and click again to toggle ascending/descending order. Arrow indicators show the current sort direction.
 
 ### Rich Text Editor
-Rich text properties use a full WYSIWYG editor powered by TipTap. The editor supports bold, italic, underline, strikethrough, headings, font sizes, text color, bullet/ordered lists, text alignment, blockquotes, code blocks, and horizontal rules. A raw HTML mode toggle lets you view and edit the underlying HTML directly, with changes syncing between modes.
+Rich text properties use a full WYSIWYG editor powered by TipTap. The editor supports bold, italic, underline, strikethrough, headings, font sizes, text color, bullet/ordered lists, text alignment, blockquotes, code blocks, and horizontal rules. A raw HTML mode toggle lets you view and edit the underlying HTML directly, with changes syncing between modes. The editor area has a capped max-height and scrolls when content is large, keeping the form layout manageable.
+
+### Page Editor with Live Preview
+When editing a page, the admin shows a split-pane layout: the edit form on the left and a live preview on the right. The preview renders using the same page templates as the public site, updating in real time as you type. A draggable divider between the panels lets you adjust the split to your preference (20%–80%). You can toggle the preview on or off, and a "View Live" link opens the published page in a new tab.
 
 ### Admin Panel
-A clean, consistent admin interface at `/admin` lets you manage pages, view registered page types, configure page type settings, and publish content. On first launch, you'll set up an initial administrator account — a Home page is created automatically so you can start building immediately.
+A clean, consistent admin interface at `/admin` lets you manage pages, view registered page types, configure page type settings, and publish content. The sidebar is collapsible — click the chevron to shrink it to icon-only mode for more workspace. On first launch, you'll set up an initial administrator account — a Home page is created automatically so you can start building immediately.
 
 ---
 
@@ -86,7 +89,7 @@ app/              → Pages and API routes (Next.js App Router)
   [[...slug]]/    → Catch-all public page routing
 components/
   ui/             → Shared, reusable UI components
-  admin/          → Admin-specific components (sidebar, page tree, file explorer, rich text editor)
+  admin/          → Admin-specific components (sidebar, page tree, page preview, file explorer, rich text editor)
 lib/
   auth/           → Authentication and session management
   page-types/     → Page Type definitions and registry
