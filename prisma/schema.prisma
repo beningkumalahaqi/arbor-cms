@@ -31,6 +31,8 @@ model Page {
   status    String   @default("draft")
   content   String   @default("{}")
   sortOrder Int      @default(0)
+  showInNav Int      @default(0)
+  navLabel  String   @default("")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -72,4 +74,16 @@ model StorageFolder {
   createdAt DateTime @default(now())
 
   @@index([path])
+}
+
+model SiteSettings {
+  id                String   @id @default(cuid())
+  navigationEnabled Int      @default(1)
+  navigationLogo    String   @default("")
+  navigationTitle   String   @default("Arbor CMS")
+  footerEnabled     Int      @default(1)
+  footerLogo        String   @default("")
+  footerText        String   @default("")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }

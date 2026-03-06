@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { PageLayout, Card, CardContent, Button, Input, FormField, RadioGroup, RadioGroupItem, Label } from "@/components/ui";
+import { PageLayout, Card, Button, Input, FormField, RadioGroup, RadioGroupItem, Label } from "@/components/ui";
 import { ImageField } from "@/components/admin/image-field";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { PagePreview } from "@/components/admin/page-preview";
@@ -15,6 +15,9 @@ interface PageData {
   pageType: string;
   status: string;
   content: string;
+  parentId: string | null;
+  showInNav: number;
+  navLabel: string;
 }
 
 export default function EditPagePage() {
@@ -29,6 +32,8 @@ export default function EditPagePage() {
   const [typeDef, setTypeDef] = useState<PageTypeDefinition | null>(null);
   const [content, setContent] = useState<Record<string, string>>({});
   const [status, setStatus] = useState("draft");
+  const [showInNav, setShowInNav] = useState(false);
+  const [navLabel, setNavLabel] = useState("");
   const [showPreview, setShowPreview] = useState(true);
   const [splitPercent, setSplitPercent] = useState(50);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -69,6 +74,8 @@ export default function EditPagePage() {
               : data.page.content;
           setContent(parsed);
           setStatus(data.page.status);
+          setShowInNav(data.page.showInNav === 1);
+          setNavLabel(data.page.navLabel ?? "");
           const td = getPageType(data.page.pageType);
           setTypeDef(td ?? null);
         }
@@ -84,7 +91,7 @@ export default function EditPagePage() {
     const res = await fetch(`/api/pages/${pageId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content, status }),
+      body: JSON.stringify({ content, status, showInNav, navLabel }),
     });
 
     const data = await res.json();
@@ -180,6 +187,37 @@ export default function EditPagePage() {
               </div>
             </RadioGroup>
           </FormField>
+
+          {!page.parentId && (
+            <div className="space-y-4 border-t pt-4">
+              <p className="text-sm font-medium text-foreground">Navigation</p>
+              <FormField label="Show in Navigation">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showInNav}
+                    onChange={(e) => setShowInNav(e.target.checked)}
+                    className="h-4 w-4 rounded border-border accent-primary"
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    Display this page in the site navigation bar
+                  </span>
+                </label>
+              </FormField>
+              {showInNav && (
+                <FormField label="Navigation Label">
+                  <Input
+                    value={navLabel}
+                    onChange={(e) => setNavLabel(e.target.value)}
+                    placeholder={page.slug ? page.slug.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") : "Home"}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Leave empty to use the default label based on slug
+                  </p>
+                </FormField>
+              )}
+            </div>
+          )}
 
           {typeDef && (
             <div className="space-y-4 border-t pt-4">

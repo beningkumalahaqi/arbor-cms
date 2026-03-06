@@ -40,7 +40,7 @@ export async function PUT(
   }
 
   const body = await request.json();
-  const { content, status } = body;
+  const { content, status, showInNav, navLabel } = body;
 
   const updateData: Record<string, unknown> = {};
 
@@ -71,6 +71,14 @@ export async function PUT(
   // Update status
   if (status && (status === "draft" || status === "published")) {
     updateData.status = status;
+  }
+
+  // Update navigation fields
+  if (showInNav !== undefined) {
+    updateData.showInNav = showInNav ? 1 : 0;
+  }
+  if (navLabel !== undefined) {
+    updateData.navLabel = String(navLabel);
   }
 
   const updatedPage = await prisma.page.update({
