@@ -18,12 +18,6 @@
 
 ---
 
-## About
-
-Arbor CMS organizes content as a hierarchical page tree with typed pages, structured content fields, and data-driven routing.
-
----
-
 ## Getting Started
 
 ```bash
@@ -32,7 +26,8 @@ npx prisma migrate dev
 npm run dev
 ```
 
-Visit `/setup` to create your admin account. A Home page is created automatically.
+Visit `/setup` to create your admin account on the first load. 
+A Home page is created automatically after the setup.
 
 ---
 
