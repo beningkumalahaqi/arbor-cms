@@ -17,7 +17,7 @@ export function ImageField({ value, onChange, required }: ImageFieldProps) {
     <div className="space-y-2">
       {value ? (
         <div className="relative inline-block">
-          <div className="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700">
+          <div className="overflow-hidden rounded-lg border">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`/api/storage/file/${value}`}
@@ -25,13 +25,13 @@ export function ImageField({ value, onChange, required }: ImageFieldProps) {
               className="max-h-48 object-contain"
             />
           </div>
-          <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+          <div className="mt-1 text-xs text-muted-foreground">
             {value}
           </div>
         </div>
       ) : (
-        <div className="rounded-lg border-2 border-dashed border-zinc-300 p-6 text-center dark:border-zinc-700">
-          <p className="text-sm text-zinc-400">No image selected</p>
+        <div className="rounded-lg border-2 border-dashed p-6 text-center">
+          <p className="text-sm text-muted-foreground">No image selected</p>
         </div>
       )}
 
