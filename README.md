@@ -7,17 +7,6 @@
 <p align="center">
   A lightweight, tree-structured Content Management System for developers who want full control over their content architecture.
 </p>
-
----
-
-## About
-
-Arbor CMS organizes content as a hierarchical page tree with typed pages, structured content fields, and data-driven routing. No drag-and-drop builders — just clean, form-based admin screens with live preview.
-
----
-
-## Tech Stack
-
 <p align="center">
   <a href="https://nextjs.org"><img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js" /></a>
   <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" /></a>
@@ -27,27 +16,11 @@ Arbor CMS organizes content as a hierarchical page tree with typed pages, struct
   <a href="https://tiptap.dev"><img src="https://img.shields.io/badge/TipTap-1a1a2e?style=for-the-badge&logo=tiptap&logoColor=white" alt="TipTap" /></a>
 </p>
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | Next.js (App Router) |
-| Language | TypeScript |
-| Database | Prisma ORM + libSQL (SQLite-compatible, Turso-ready) |
-| UI | shadcn/ui · Tailwind CSS · Phosphor Icons |
-| Rich Text | TipTap (ProseMirror) |
-| Auth | Cookie-based sessions · bcrypt |
-
 ---
 
-## Features
+## About
 
-- **Page Tree** — Hierarchical content with nested URL routing
-- **Page Types** — Extensible typed pages with structured content fields
-- **Live Preview** — Split-pane editor with real-time template rendering
-- **File Manager** — Database-backed storage with drag-and-drop and folder hierarchy
-- **Rich Text Editor** — Full WYSIWYG with HTML mode toggle
-- **Dual Theming** — Independent themes for admin and public site (Auto/Light/Dark)
-- **Site Navigation & Footer** — Configurable via admin settings
-- **Extensible** — Add page types, property types, templates, and icons through code
+Arbor CMS organizes content as a hierarchical page tree with typed pages, structured content fields, and data-driven routing.
 
 ---
 
