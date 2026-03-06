@@ -2,11 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { PageLayout } from "@/components/ui";
-import { Card } from "@/components/ui";
-import { Button } from "@/components/ui";
-import { Input } from "@/components/ui";
-import { FormField } from "@/components/ui";
+import { PageLayout, Card, CardContent, Button, Input, FormField, RadioGroup, RadioGroupItem, Label } from "@/components/ui";
 import { ImageField } from "@/components/admin/image-field";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { PagePreview } from "@/components/admin/page-preview";
@@ -122,7 +118,7 @@ export default function EditPagePage() {
   if (loading) {
     return (
       <PageLayout title="Edit Page">
-        <p className="text-zinc-500">Loading...</p>
+        <p className="text-muted-foreground">Loading...</p>
       </PageLayout>
     );
   }
@@ -130,7 +126,7 @@ export default function EditPagePage() {
   if (!page) {
     return (
       <PageLayout title="Page Not Found">
-        <p className="text-zinc-500">This page does not exist.</p>
+        <p className="text-muted-foreground">This page does not exist.</p>
       </PageLayout>
     );
   }
@@ -145,7 +141,7 @@ export default function EditPagePage() {
             href={page.fullPath}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+            className="inline-flex items-center justify-center gap-1.5 rounded-md border bg-background px-3 py-2 text-sm font-medium text-foreground shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
             View Live
@@ -156,7 +152,7 @@ export default function EditPagePage() {
           >
             {showPreview ? "Hide Preview" : "Show Preview"}
           </Button>
-          <Button variant="danger" onClick={handleDelete}>
+          <Button variant="destructive" onClick={handleDelete}>
             Delete
           </Button>
         </div>
@@ -167,41 +163,27 @@ export default function EditPagePage() {
       <Card className={showPreview ? "h-[calc(100vh-10rem)] overflow-hidden flex flex-col" : "max-w-2xl"}>
         <form onSubmit={handleSave} className={`space-y-4 ${showPreview ? "flex-1 overflow-auto p-0" : ""}`}>
           {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
               {error}
             </div>
           )}
 
           <FormField label="Status">
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
-                <input
-                  type="radio"
-                  name="status"
-                  value="draft"
-                  checked={status === "draft"}
-                  onChange={() => setStatus("draft")}
-                  className="accent-zinc-900 dark:accent-zinc-100"
-                />
-                Draft
-              </label>
-              <label className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
-                <input
-                  type="radio"
-                  name="status"
-                  value="published"
-                  checked={status === "published"}
-                  onChange={() => setStatus("published")}
-                  className="accent-zinc-900 dark:accent-zinc-100"
-                />
-                Published
-              </label>
-            </div>
+            <RadioGroup value={status} onValueChange={setStatus} className="flex gap-4">
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="draft" id="status-draft" />
+                <Label htmlFor="status-draft">Draft</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="published" id="status-published" />
+                <Label htmlFor="status-published">Published</Label>
+              </div>
+            </RadioGroup>
           </FormField>
 
           {typeDef && (
-            <div className="space-y-4 border-t border-zinc-200 pt-4 dark:border-zinc-800">
-              <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <div className="space-y-4 border-t pt-4">
+              <p className="text-sm font-medium text-foreground">
                 Content Properties
               </p>
               {typeDef.allowedProperties.map((prop) => (
@@ -261,9 +243,9 @@ export default function EditPagePage() {
           {/* Drag handle */}
           <div
             onMouseDown={handleMouseDown}
-            className="flex w-2 shrink-0 cursor-col-resize items-center justify-center hover:bg-zinc-200 active:bg-zinc-300 dark:hover:bg-zinc-700 dark:active:bg-zinc-600"
+            className="flex w-2 shrink-0 cursor-col-resize items-center justify-center hover:bg-accent active:bg-accent/80"
           >
-            <div className="h-8 w-0.5 rounded-full bg-zinc-300 dark:bg-zinc-600" />
+            <div className="h-8 w-0.5 rounded-full bg-border" />
           </div>
           <div className="min-w-0 flex-1">
             <Card className="sticky top-6 h-[calc(100vh-10rem)] overflow-hidden">

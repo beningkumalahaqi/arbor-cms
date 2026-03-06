@@ -65,7 +65,7 @@ export default function PagesListPage() {
       }
     >
       {loading ? (
-        <p className="text-zinc-500">Loading...</p>
+        <p className="text-muted-foreground">Loading...</p>
       ) : (
         <PageTree pages={pages} settings={settings} />
       )}

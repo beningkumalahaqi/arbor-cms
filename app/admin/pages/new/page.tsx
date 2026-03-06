@@ -2,13 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { PageLayout } from "@/components/ui";
-import { Card } from "@/components/ui";
-import { Button } from "@/components/ui";
-import { Input } from "@/components/ui";
-import { Textarea } from "@/components/ui";
-import { Select } from "@/components/ui";
-import { FormField } from "@/components/ui";
+import { PageLayout, Card, CardContent, Button, Input, Textarea, FormField, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui";
 import { ImageField } from "@/components/admin/image-field";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { getAllPageTypes, type PageTypeDefinition } from "@/lib/page-types";
@@ -147,7 +141,7 @@ export default function NewPagePage() {
       <Card className="max-w-2xl">
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
               {error}
             </div>
           )}
@@ -155,36 +149,47 @@ export default function NewPagePage() {
           <FormField label="Parent Page">
             <Select
               value={form.parentId}
-              onChange={(e) =>
-                setForm({ ...form, parentId: e.target.value })
+              onValueChange={(value) =>
+                setForm({ ...form, parentId: value === "__none__" ? "" : value })
               }
-              options={[
-                { value: "", label: "None (root level)" },
-                ...parents.map((p) => ({
-                  value: p.id,
-                  label: p.fullPath,
-                })),
-              ]}
-            />
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="None (root level)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">None (root level)</SelectItem>
+                {parents.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.fullPath}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </FormField>
 
           <FormField label="Page Type">
             <Select
               value={form.pageType}
-              onChange={(e) =>
-                setForm({ ...form, pageType: e.target.value })
+              onValueChange={(value) =>
+                setForm({ ...form, pageType: value })
               }
-              options={availablePageTypes.map((pt) => ({
-                value: pt.name,
-                label: pt.label,
-              }))}
-              placeholder="Select a page type"
               required
-            />
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a page type" />
+              </SelectTrigger>
+              <SelectContent>
+                {availablePageTypes.map((pt) => (
+                  <SelectItem key={pt.name} value={pt.name}>
+                    {pt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </FormField>
 
           {isHome ? (
-            <div className="rounded-md bg-zinc-50 p-3 text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+            <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground">
               Home page always serves <span className="font-mono font-medium">/</span>. Slug and parent are set automatically.
             </div>
           ) : (
@@ -203,8 +208,8 @@ export default function NewPagePage() {
           )}
 
           {selectedType && (
-            <div className="space-y-4 border-t border-zinc-200 pt-4 dark:border-zinc-800">
-              <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <div className="space-y-4 border-t pt-4">
+              <p className="text-sm font-medium text-foreground">
                 Content Properties
               </p>
               {selectedType.allowedProperties.map((prop) => (

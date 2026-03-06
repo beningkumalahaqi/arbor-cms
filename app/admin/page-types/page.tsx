@@ -107,7 +107,7 @@ export default function PageTypesPage() {
             <Card key={pt.name}>
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                     <PageTypeIcon
                       iconPath={iconDef?.path ?? ""}
                       size={20}
@@ -124,7 +124,7 @@ export default function PageTypesPage() {
                 <div className="space-y-4">
                   {/* Icon picker */}
                   <div>
-                    <p className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                    <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       Icon
                     </p>
                     <div className="grid grid-cols-10 gap-1">
@@ -135,8 +135,8 @@ export default function PageTypesPage() {
                           onClick={() => setEditIcon(icon.name)}
                           className={`flex h-8 w-8 items-center justify-center rounded-md transition-colors ${
                             editIcon === icon.name
-                              ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                              : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                              ? "bg-foreground text-background"
+                              : "bg-muted text-muted-foreground hover:bg-accent"
                           }`}
                           title={icon.label}
                         >
@@ -148,7 +148,7 @@ export default function PageTypesPage() {
 
                   {/* Allowed children */}
                   <div>
-                    <p className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                    <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       Allowed Children
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -159,8 +159,8 @@ export default function PageTypesPage() {
                           onClick={() => toggleAllowed(childType.name)}
                           className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                             editAllowed.includes(childType.name)
-                              ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                              : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                              ? "bg-foreground text-background"
+                              : "bg-muted text-muted-foreground hover:bg-accent"
                           }`}
                         >
                           {childType.label}
@@ -168,7 +168,7 @@ export default function PageTypesPage() {
                       ))}
                     </div>
                     {editAllowed.length === 0 && (
-                      <p className="mt-1 text-xs text-zinc-400">
+                      <p className="mt-1 text-xs text-muted-foreground">
                         No restrictions — all types allowed as children
                       </p>
                     )}
@@ -188,22 +188,22 @@ export default function PageTypesPage() {
                   </div>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3 px-2">
                   {/* Allowed children display */}
                   {s?.allowedChildren && s.allowedChildren.length > 0 && (
                     <div>
-                      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                        Allowed Children
-                      </p>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {s.allowedChildren.map((name) => {
-                          const childType = pageTypes.find(
-                            (t) => t.name === name
-                          );
-                          return (
-                            <span
-                              key={name}
-                              className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Allowed Children
+                    </p>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {s.allowedChildren.map((name) => {
+                        const childType = pageTypes.find(
+                          (t) => t.name === name
+                        );
+                        return (
+                          <span
+                            key={name}
+                            className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
                             >
                               {childType?.label ?? name}
                             </span>
@@ -215,7 +215,7 @@ export default function PageTypesPage() {
 
                   {/* Properties */}
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       Properties
                     </p>
                     <ul className="mt-1 space-y-1">
@@ -224,10 +224,10 @@ export default function PageTypesPage() {
                           key={prop.name}
                           className="flex items-center justify-between text-sm"
                         >
-                          <span className="text-zinc-700 dark:text-zinc-300">
+                          <span className="text-foreground/80">
                             {prop.label}
                           </span>
-                          <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                          <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                             {prop.type}
                             {prop.required ? " • required" : ""}
                           </span>

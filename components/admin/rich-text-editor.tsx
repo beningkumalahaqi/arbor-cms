@@ -33,8 +33,8 @@ function ToolbarButton({
       title={title}
       className={`rounded px-2 py-1 text-xs font-medium transition-colors ${
         isActive
-          ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-          : "text-zinc-600 hover:bg-zinc-200 dark:text-zinc-400 dark:hover:bg-zinc-700"
+          ? "bg-foreground text-background"
+          : "text-muted-foreground hover:bg-accent"
       }`}
     >
       {children}
@@ -46,9 +46,9 @@ function EditorToolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
   if (!editor) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-0.5 border-b border-zinc-200 bg-zinc-50 px-2 py-1.5 dark:border-zinc-700 dark:bg-zinc-800/50">
+    <div className="flex flex-wrap items-center gap-0.5 border-b bg-muted/50 px-2 py-1.5">
       {/* Text Style Group */}
-      <div className="flex items-center gap-0.5 border-r border-zinc-200 pr-2 dark:border-zinc-700">
+      <div className="flex items-center gap-0.5 border-r pr-2">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           isActive={editor.isActive("bold")}
@@ -80,7 +80,7 @@ function EditorToolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
       </div>
 
       {/* Heading Group */}
-      <div className="flex items-center gap-0.5 border-r border-zinc-200 pr-2 pl-2 dark:border-zinc-700">
+      <div className="flex items-center gap-0.5 border-r pr-2 pl-2">
         <select
           value={
             editor.isActive("heading", { level: 1 })
@@ -105,7 +105,7 @@ function EditorToolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
                 .run();
             }
           }}
-          className="rounded border border-zinc-300 bg-white px-1.5 py-0.5 text-xs text-zinc-700 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
+          className="rounded border bg-background px-1.5 py-0.5 text-xs text-foreground"
         >
           <option value="p">Paragraph</option>
           <option value="1">Heading 1</option>
@@ -116,7 +116,7 @@ function EditorToolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
       </div>
 
       {/* Font Size */}
-      <div className="flex items-center gap-0.5 border-r border-zinc-200 pr-2 pl-2 dark:border-zinc-700">
+      <div className="flex items-center gap-0.5 border-r pr-2 pl-2">
         <select
           onChange={(e) => {
             const size = e.target.value;
@@ -126,7 +126,7 @@ function EditorToolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
               editor.chain().focus().setMark("textStyle", { fontSize: size }).run();
             }
           }}
-          className="rounded border border-zinc-300 bg-white px-1.5 py-0.5 text-xs text-zinc-700 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
+          className="rounded border bg-background px-1.5 py-0.5 text-xs text-foreground"
           defaultValue="default"
         >
           <option value="default">Size</option>
@@ -142,19 +142,19 @@ function EditorToolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
       </div>
 
       {/* Color */}
-      <div className="flex items-center gap-0.5 border-r border-zinc-200 pr-2 pl-2 dark:border-zinc-700">
+      <div className="flex items-center gap-0.5 border-r pr-2 pl-2">
         <input
           type="color"
           onInput={(e) =>
             editor.chain().focus().setColor((e.target as HTMLInputElement).value).run()
           }
-          className="h-6 w-6 cursor-pointer rounded border border-zinc-300 dark:border-zinc-600"
+          className="h-6 w-6 cursor-pointer rounded border"
           title="Text Color"
         />
       </div>
 
       {/* List Group */}
-      <div className="flex items-center gap-0.5 border-r border-zinc-200 pr-2 pl-2 dark:border-zinc-700">
+      <div className="flex items-center gap-0.5 border-r pr-2 pl-2">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           isActive={editor.isActive("bulletList")}
@@ -172,7 +172,7 @@ function EditorToolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
       </div>
 
       {/* Alignment Group */}
-      <div className="flex items-center gap-0.5 border-r border-zinc-200 pr-2 pl-2 dark:border-zinc-700">
+      <div className="flex items-center gap-0.5 border-r pr-2 pl-2">
         <ToolbarButton
           onClick={() => editor.chain().focus().setTextAlign("left").run()}
           isActive={editor.isActive({ textAlign: "left" })}
@@ -266,7 +266,7 @@ export function RichTextEditor({ value, onChange, rows = 10 }: RichTextEditorPro
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm sm:prose-base prose-zinc dark:prose-invert max-w-none focus:outline-none px-4 py-3",
+          "prose prose-sm sm:prose-base dark:prose-invert max-w-none focus:outline-none px-4 py-3",
         style: `min-height: ${rows * 1.5}rem`,
       },
     },
@@ -306,16 +306,16 @@ export function RichTextEditor({ value, onChange, rows = 10 }: RichTextEditorPro
   }, [isRawMode, editor, rawHtml]);
 
   return (
-    <div className="overflow-hidden rounded-md border border-zinc-300 dark:border-zinc-700">
+    <div className="overflow-hidden rounded-md border">
       {/* Mode Toggle */}
-      <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-3 py-1 dark:border-zinc-700 dark:bg-zinc-800/50">
-        <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+      <div className="flex items-center justify-between border-b bg-muted/50 px-3 py-1">
+        <span className="text-xs font-medium text-muted-foreground">
           {isRawMode ? "HTML Mode" : "Editor Mode"}
         </span>
         <button
           type="button"
           onClick={toggleMode}
-          className="rounded px-2 py-0.5 text-xs font-medium text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20"
+          className="rounded px-2 py-0.5 text-xs font-medium text-primary hover:bg-primary/10"
         >
           {isRawMode ? "Switch to Editor" : "Switch to HTML"}
         </button>
@@ -326,7 +326,7 @@ export function RichTextEditor({ value, onChange, rows = 10 }: RichTextEditorPro
           value={rawHtml}
           onChange={handleRawChange}
           rows={rows}
-          className="w-full resize-y bg-zinc-950 px-4 py-3 font-mono text-sm text-green-400 focus:outline-none dark:bg-zinc-950"
+          className="w-full resize-y bg-zinc-950 px-4 py-3 font-mono text-sm text-green-400 focus:outline-none"
           style={{ maxHeight: `${rows * 3}rem` }}
           spellCheck={false}
         />

@@ -38,7 +38,7 @@ function ImageGrid({
         <button
           type="button"
           onClick={() => onNavigate("")}
-          className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
+          className="font-medium text-primary hover:text-primary/80"
         >
           storage
         </button>
@@ -48,11 +48,11 @@ function ImageGrid({
           return acc;
         }, []).map((bc) => (
           <span key={bc.path} className="flex items-center gap-1">
-            <span className="text-zinc-400">/</span>
+            <span className="text-muted-foreground">/</span>
             <button
               type="button"
               onClick={() => onNavigate(bc.path)}
-              className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
+              className="font-medium text-primary hover:text-primary/80"
             >
               {bc.label}
             </button>
@@ -69,14 +69,14 @@ function ImageGrid({
             parts.pop();
             onNavigate(parts.join("/"));
           }}
-          className="mb-2 flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400"
+          className="mb-2 flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
           ⬆️ Back
         </button>
       )}
 
       {entries.length === 0 ? (
-        <div className="py-8 text-center text-sm text-zinc-400">
+        <div className="py-8 text-center text-sm text-muted-foreground">
           No images found in this folder.
         </div>
       ) : (
@@ -88,10 +88,10 @@ function ImageGrid({
                   key={entry.path}
                   type="button"
                   onClick={() => onNavigate(entry.path)}
-                  className="flex flex-col items-center gap-1 rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                  className="flex flex-col items-center gap-1 rounded-lg border p-3 transition-colors hover:bg-accent"
                 >
                   <span className="text-2xl">📁</span>
-                  <span className="w-full truncate text-center text-xs text-zinc-600 dark:text-zinc-400">
+                  <span className="w-full truncate text-center text-xs text-muted-foreground">
                     {entry.name}
                   </span>
                 </button>
@@ -106,11 +106,11 @@ function ImageGrid({
                 onClick={() => onSelect(entry.path)}
                 className={`group relative flex flex-col items-center gap-1 overflow-hidden rounded-lg border-2 p-1 transition-all ${
                   isSelected
-                    ? "border-blue-500 ring-2 ring-blue-200 dark:ring-blue-800"
-                    : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-700 dark:hover:border-zinc-600"
+                    ? "border-primary ring-2 ring-primary/30"
+                    : "border-border hover:border-muted-foreground/30"
                 }`}
               >
-                <div className="relative aspect-square w-full overflow-hidden rounded bg-zinc-100 dark:bg-zinc-800">
+                <div className="relative aspect-square w-full overflow-hidden rounded bg-muted">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={`/api/storage/file/${entry.path}`}
@@ -118,14 +118,14 @@ function ImageGrid({
                     className="h-full w-full object-cover"
                   />
                   {isSelected && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-blue-500/20">
-                      <span className="rounded-full bg-blue-500 px-2 py-0.5 text-xs font-medium text-white">
+                    <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
+                      <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
                         Selected
                       </span>
                     </div>
                   )}
                 </div>
-                <span className="w-full truncate text-center text-xs text-zinc-600 dark:text-zinc-400">
+                <span className="w-full truncate text-center text-xs text-muted-foreground">
                   {entry.name}
                 </span>
               </button>
@@ -211,17 +211,17 @@ export function ImageSelectorModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
       <div
-        className="mx-4 flex max-h-[80vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-xl dark:bg-zinc-900"
+        className="mx-4 flex max-h-[80vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-card shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4 dark:border-zinc-700">
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+        <div className="flex items-center justify-between border-b px-6 py-4">
+          <h2 className="text-lg font-semibold text-foreground">
             Select Image
           </h2>
           <div className="flex items-center gap-2">
             <label className="cursor-pointer">
-              <span className="inline-flex cursor-pointer items-center rounded-md bg-zinc-100 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700">
+              <span className="inline-flex cursor-pointer items-center rounded-md bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80">
                 {uploading ? "Uploading..." : "Upload Image"}
               </span>
               <input
@@ -236,7 +236,7 @@ export function ImageSelectorModal({
             <button
               type="button"
               onClick={onClose}
-              className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+              className="text-muted-foreground hover:text-foreground"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M18 6L6 18M6 6l12 12" />
@@ -248,7 +248,7 @@ export function ImageSelectorModal({
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
           {loading ? (
-            <div className="py-8 text-center text-sm text-zinc-400">Loading...</div>
+            <div className="py-8 text-center text-sm text-muted-foreground">Loading...</div>
           ) : (
             <ImageGrid
               entries={entries}
@@ -261,8 +261,8 @@ export function ImageSelectorModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-zinc-200 px-6 py-4 dark:border-zinc-700">
-          <div className="truncate text-sm text-zinc-500">
+        <div className="flex items-center justify-between border-t px-6 py-4">
+          <div className="truncate text-sm text-muted-foreground">
             {selectedPath ? `Selected: ${selectedPath}` : "No image selected"}
           </div>
           <div className="flex gap-2">
