@@ -2,6 +2,8 @@ import { prisma } from "@/lib/db";
 import { PageLayout } from "@/components/ui";
 import { Card, CardTitle } from "@/components/ui";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminDashboard() {
   const pageCount = await prisma.page.count();
   const publishedCount = await prisma.page.count({

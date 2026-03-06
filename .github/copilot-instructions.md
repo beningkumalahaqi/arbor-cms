@@ -28,11 +28,11 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - `lib/page-types/` — Page Type definitions, registry, and type exports
 - `lib/page-template/` — Page Template components and registry (one template per page type)
 - `lib/properties/` — Property validation and default content builder
-- `lib/storage.ts` — File system storage utility (CRUD, move, path safety, mime types)
+- `lib/storage/` — Database-backed file storage module (types, DB operations, index re-exports)
 - `lib/db.ts` — PrismaClient singleton using libSQL adapter
 - `lib/icons.ts` — Curated SVG icon definitions for page types (name, label, SVG path)
 - `lib/validation.ts` — Shared validators (email, slug, required fields)
-- `prisma/schema.prisma` — Database schema (User, Page, PageTypeSettings models)
+- `prisma/schema.prisma` — Database schema (User, Page, PageTypeSettings, StorageFile, StorageFolder models)
 - `docs/` — Release documentation
 - `guide/` — Developer guides for extending the CMS
 
@@ -50,6 +50,16 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - `id` (cuid), `pageTypeName` (unique), `icon` (string, default "file"), `allowedChildren` (JSON array as string, default "[]")
 - Stores admin-configurable settings per page type: display icon and which child page types are allowed
 - Settings are managed via the admin UI, not in code
+
+### StorageFile
+- `id` (cuid), `name`, `path` (unique), `mimeType`, `size` (int), `data` (Bytes/blob), `createdAt`, `updatedAt`
+- Stores uploaded files as binary blobs in the database
+- Indexed on: `path`
+
+### StorageFolder
+- `id` (cuid), `path` (unique), `createdAt`
+- Represents virtual folder structure for the file manager
+- Indexed on: `path`
 
 ## Page Types
 - Defined in code under `lib/page-types/`, one file per type
@@ -150,11 +160,11 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - Auth checked via `getSession()` at the start of every handler
 - Validation happens server-side before any database write
 - Page creation enforces: valid page type, valid slug, unique fullPath, property validation, allowed children check
-- Page creation auto-creates a corresponding folder in `/storage/pages/` matching the page hierarchy
+- Page creation auto-creates a corresponding StorageFolder in the database matching the page hierarchy
 - Home page creation additionally enforces: singleton check, no parent, forced `fullPath = "/"`
 - Page type settings managed via `/api/page-types/settings` (GET for list, PUT for upsert)
-- File management via `/api/storage` (GET list, POST create/upload/rename/move, DELETE)
-- File serving via `/api/storage/file/[...path]` (GET with caching headers)
+- File management via `/api/storage` (GET list, POST create/upload/rename/move, DELETE) — all backed by database
+- File serving via `/api/storage/file/[...path]` (GET with caching headers, reads from database)
 
 ## Security
 - Never trust client input
@@ -164,7 +174,7 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - Session cookies are httpOnly, sameSite lax, secure in production
 - File uploads: max 10MB, blocked executable extensions (.exe, .bat, .sh, .js, .php, etc.)
 - File names sanitized — only alphanumeric, hyphens, underscores, dots, spaces
-- Path traversal prevention on all storage operations
+- Path traversal prevention on all storage operations (normalizePath rejects `..` segments)
 
 ## Extensibility
 - Architecture must allow:
@@ -190,3 +200,4 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - No UI logic mixed with domain logic
 - No `datasourceUrl` in PrismaClient constructor (Prisma 7 uses adapter pattern)
 - No bare `new PrismaClient()` without adapter
+- No filesystem-based storage — all file storage uses the database via `lib/storage/`

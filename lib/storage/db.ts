@@ -1,37 +1,8 @@
 import path from "path";
 import { prisma } from "@/lib/db";
+import { FileEntry, sanitizeName, isValidName, getMimeType } from "./types";
 
-// Characters allowed in file/folder names: alphanumeric, hyphens, underscores, dots, spaces
-const SAFE_NAME_REGEX = /^[a-zA-Z0-9_\-. ]+$/;
-
-export interface FileEntry {
-  name: string;
-  path: string; // relative to storage root
-  type: "file" | "directory";
-  size?: number;
-  createdAt?: string;
-  modifiedAt?: string;
-  children?: FileEntry[];
-}
-
-function sanitizeName(name: string): string {
-  return name.replace(/[^a-zA-Z0-9_\-. ]/g, "").trim();
-}
-
-function isValidName(name: string): boolean {
-  if (!name || name.trim() === "") return false;
-  if (!SAFE_NAME_REGEX.test(name)) return false;
-  if (name === "." || name === "..") return false;
-  if (name.length > 255) return false;
-  return true;
-}
-
-/**
- * Validate and normalize a relative path to prevent traversal attacks.
- * Returns a clean path string (no leading/trailing slashes, no ".." segments).
- */
 function normalizePath(relativePath: string): string {
-  // Reject any path with ".." segments
   const segments = relativePath.split("/").filter(Boolean);
   if (segments.some((s) => s === "..")) {
     throw new Error("Path traversal detected.");
@@ -39,37 +10,26 @@ function normalizePath(relativePath: string): string {
   return segments.join("/");
 }
 
-// No-op: database storage doesn't need filesystem initialization
 export async function ensureStorageRoot(): Promise<void> {
-  // Nothing to do — storage is in the database
+  // No-op: database storage doesn't need filesystem initialization
 }
 
 export async function listDirectory(relativePath: string = ""): Promise<FileEntry[]> {
   const normalizedDir = relativePath ? normalizePath(relativePath) : "";
   const prefix = normalizedDir ? `${normalizedDir}/` : "";
 
-  // Get files directly in this directory
   const files = await prisma.storageFile.findMany({
     where: normalizedDir
-      ? {
-          AND: [
-            { path: { startsWith: prefix } },
-            // Exclude files in subdirectories (no additional "/" after the prefix)
-            { NOT: { path: { contains: "/", } } },
-          ],
-        }
+      ? { path: { startsWith: prefix } }
       : undefined,
     select: { name: true, path: true, size: true, createdAt: true, updatedAt: true },
   });
 
-  // For filtering: we need files whose path starts with prefix and have no "/" after the prefix
   const directFiles: FileEntry[] = files
     .filter((f) => {
       if (!normalizedDir) {
-        // Root level: no "/" in path
         return !f.path.includes("/");
       }
-      // Subdir level: after removing prefix, no more "/"
       const rest = f.path.slice(prefix.length);
       return !rest.includes("/");
     })
@@ -82,7 +42,6 @@ export async function listDirectory(relativePath: string = ""): Promise<FileEntr
       modifiedAt: f.updatedAt.toISOString(),
     }));
 
-  // Get folders directly in this directory
   const folders = await prisma.storageFolder.findMany({
     where: normalizedDir
       ? { path: { startsWith: prefix } }
@@ -107,7 +66,6 @@ export async function listDirectory(relativePath: string = ""): Promise<FileEntr
 
   const result = [...directFolders, ...directFiles];
 
-  // Sort: directories first, then files, both alphabetical
   result.sort((a, b) => {
     if (a.type !== b.type) return a.type === "directory" ? -1 : 1;
     return a.name.localeCompare(b.name);
@@ -135,7 +93,6 @@ export async function createFolder(relativePath: string, folderName: string): Pr
     relativePath ? `${relativePath}/${sanitized}` : sanitized
   );
 
-  // Upsert — create if doesn't exist
   await prisma.storageFolder.upsert({
     where: { path: folderPath },
     update: {},
@@ -155,7 +112,6 @@ export async function saveFile(relativePath: string, fileName: string, data: Buf
   const mimeType = getMimeType(ext);
   const fileData = new Uint8Array(data);
 
-  // Upsert the file (overwrite if same path exists)
   await prisma.storageFile.upsert({
     where: { path: filePath },
     update: {
@@ -182,22 +138,17 @@ export async function deleteEntry(relativePath: string): Promise<void> {
   }
   const normalized = normalizePath(relativePath);
 
-  // Try to delete as a file first
   const file = await prisma.storageFile.findUnique({ where: { path: normalized } });
   if (file) {
     await prisma.storageFile.delete({ where: { path: normalized } });
     return;
   }
 
-  // Try to delete as a folder (and all contents underneath)
   const folder = await prisma.storageFolder.findUnique({ where: { path: normalized } });
   if (folder) {
     const prefix = `${normalized}/`;
-    // Delete all files under this folder
     await prisma.storageFile.deleteMany({ where: { path: { startsWith: prefix } } });
-    // Delete all sub-folders
     await prisma.storageFolder.deleteMany({ where: { path: { startsWith: prefix } } });
-    // Delete the folder itself
     await prisma.storageFolder.delete({ where: { path: normalized } });
     return;
   }
@@ -219,7 +170,6 @@ export async function renameEntry(relativePath: string, newName: string): Promis
     : "";
   const newPath = parentDir ? `${parentDir}/${sanitized}` : sanitized;
 
-  // Check if it's a file
   const file = await prisma.storageFile.findUnique({ where: { path: normalized } });
   if (file) {
     await prisma.storageFile.update({
@@ -229,13 +179,11 @@ export async function renameEntry(relativePath: string, newName: string): Promis
     return;
   }
 
-  // Check if it's a folder
   const folder = await prisma.storageFolder.findUnique({ where: { path: normalized } });
   if (folder) {
     const oldPrefix = `${normalized}/`;
     const newPrefix = `${newPath}/`;
 
-    // Rename all files under this folder
     const childFiles = await prisma.storageFile.findMany({
       where: { path: { startsWith: oldPrefix } },
     });
@@ -246,7 +194,6 @@ export async function renameEntry(relativePath: string, newName: string): Promis
       });
     }
 
-    // Rename all sub-folders
     const childFolders = await prisma.storageFolder.findMany({
       where: { path: { startsWith: oldPrefix } },
     });
@@ -257,7 +204,6 @@ export async function renameEntry(relativePath: string, newName: string): Promis
       });
     }
 
-    // Rename the folder itself
     await prisma.storageFolder.update({
       where: { path: normalized },
       data: { path: newPath },
@@ -277,12 +223,10 @@ export async function moveEntry(sourcePath: string, destFolderPath: string): Pro
   const entryName = normalizedSource.split("/").pop()!;
   const newPath = normalizedDest ? `${normalizedDest}/${entryName}` : entryName;
 
-  // Prevent moving a folder into itself
   if (newPath.startsWith(normalizedSource + "/")) {
     throw new Error("Cannot move a folder into itself.");
   }
 
-  // Verify destination is a folder (or root)
   if (normalizedDest) {
     const destFolder = await prisma.storageFolder.findUnique({
       where: { path: normalizedDest },
@@ -292,14 +236,12 @@ export async function moveEntry(sourcePath: string, destFolderPath: string): Pro
     }
   }
 
-  // Check if target already exists
   const existingFile = await prisma.storageFile.findUnique({ where: { path: newPath } });
   const existingFolder = await prisma.storageFolder.findUnique({ where: { path: newPath } });
   if (existingFile || existingFolder) {
     throw new Error("An item with that name already exists in the destination.");
   }
 
-  // Check if it's a file
   const file = await prisma.storageFile.findUnique({ where: { path: normalizedSource } });
   if (file) {
     await prisma.storageFile.update({
@@ -309,13 +251,11 @@ export async function moveEntry(sourcePath: string, destFolderPath: string): Pro
     return;
   }
 
-  // Check if it's a folder — move it and all contents
   const folder = await prisma.storageFolder.findUnique({ where: { path: normalizedSource } });
   if (folder) {
     const oldPrefix = `${normalizedSource}/`;
     const newPrefix = `${newPath}/`;
 
-    // Move all child files
     const childFiles = await prisma.storageFile.findMany({
       where: { path: { startsWith: oldPrefix } },
     });
@@ -326,7 +266,6 @@ export async function moveEntry(sourcePath: string, destFolderPath: string): Pro
       });
     }
 
-    // Move all child folders
     const childFolders = await prisma.storageFolder.findMany({
       where: { path: { startsWith: oldPrefix } },
     });
@@ -337,7 +276,6 @@ export async function moveEntry(sourcePath: string, destFolderPath: string): Pro
       });
     }
 
-    // Move the folder itself
     await prisma.storageFolder.update({
       where: { path: normalizedSource },
       data: { path: newPath },
@@ -361,7 +299,6 @@ export async function readFile(relativePath: string): Promise<{ data: Buffer; mi
 
 export async function ensurePageFolder(fullPath: string): Promise<void> {
   if (!fullPath || fullPath === "/") return;
-  // Convert page path to folder path: /about/team -> pages/about/team
   const folderPath = normalizePath(`pages${fullPath}`);
 
   await prisma.storageFolder.upsert({
@@ -369,36 +306,4 @@ export async function ensurePageFolder(fullPath: string): Promise<void> {
     update: {},
     create: { path: folderPath },
   });
-}
-
-function getMimeType(ext: string): string {
-  const mimeTypes: Record<string, string> = {
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".png": "image/png",
-    ".gif": "image/gif",
-    ".webp": "image/webp",
-    ".svg": "image/svg+xml",
-    ".ico": "image/x-icon",
-    ".bmp": "image/bmp",
-    ".pdf": "application/pdf",
-    ".doc": "application/msword",
-    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ".xls": "application/vnd.ms-excel",
-    ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    ".txt": "text/plain",
-    ".csv": "text/csv",
-    ".json": "application/json",
-    ".xml": "application/xml",
-    ".zip": "application/zip",
-    ".mp4": "video/mp4",
-    ".mp3": "audio/mpeg",
-    ".wav": "audio/wav",
-  };
-  return mimeTypes[ext] || "application/octet-stream";
-}
-
-export function isImageFile(fileName: string): boolean {
-  const ext = path.extname(fileName).toLowerCase();
-  return [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".bmp", ".ico"].includes(ext);
 }

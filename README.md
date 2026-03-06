@@ -33,7 +33,7 @@ These settings are managed entirely through the admin interface — no code chan
 Properties are the content fields within a page — things like title, description, or body text. Each Page Type declares which properties it uses, what type they are (text, rich text, image, etc.), and whether they're required. This keeps content structured and validated.
 
 ### File Management
-Arbor CMS includes a built-in file manager accessible from the admin panel. Upload, organize, rename, and delete files in a hierarchical folder structure stored in the `/storage` directory. When pages are created, corresponding folders are auto-created for organizational convenience. The image property type integrates with the file manager via a visual selector modal.
+Arbor CMS includes a built-in file manager accessible from the admin panel. Upload, organize, rename, and delete files in a hierarchical folder structure. Files and folders are stored in the database as binary blobs, making storage fully portable and persistent across deployments — no local filesystem or external storage service required. When pages are created, corresponding folders are auto-created for organizational convenience. The image property type integrates with the file manager via a visual selector modal.
 
 The file explorer supports **drag-and-drop** to move files and folders between directories, and **sortable columns** — click any column header (Name, Size, Date Added, Modified) to sort, and click again to toggle ascending/descending order. Arrow indicators show the current sort direction.
 
@@ -54,7 +54,7 @@ A clean, consistent admin interface at `/admin` lets you manage pages, view regi
 |-------|-----------|
 | Framework | Next.js (App Router) |
 | Language | TypeScript |
-| Database | Prisma ORM — SQLite locally, PostgreSQL-ready |
+| Database | Prisma ORM with libSQL adapter (SQLite-compatible, Turso-ready) |
 | Styling | Tailwind CSS |
 | Auth | Cookie-based sessions, bcrypt password hashing |
 | Rich Text | TipTap (ProseMirror) |
@@ -96,9 +96,8 @@ lib/
   page-template/  → Page Template components and registry
   properties/     → Property validation and defaults
   icons.ts        → Curated SVG icon set for page types
-  storage.ts      → File system storage utility
+  storage/        → Database-backed file storage (types, DB operations, index)
 prisma/           → Database schema and migrations
-storage/          → File storage directory (git-ignored except .gitkeep)
 docs/             → Release notes and documentation
 guide/            → Developer guides for extending the CMS
 ```

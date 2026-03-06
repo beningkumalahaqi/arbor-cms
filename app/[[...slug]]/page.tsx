@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import type { PageContent } from "@/lib/page-types";
 import { getTemplate } from "@/lib/page-template";
 
+export const dynamic = "force-dynamic";
+
 interface CatchAllPageProps {
   params: Promise<{ slug?: string[] }>;
 }
