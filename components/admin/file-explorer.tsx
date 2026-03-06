@@ -333,15 +333,14 @@ export function FileExplorer({
         <Button size="sm" variant="secondary" onClick={() => setShowNewFolder(!showNewFolder)}>
           New Folder
         </Button>
-        <label className="cursor-pointer">
-          <Button size="sm" variant="secondary" disabled={uploading} onClick={() => {}} className="pointer-events-none">
-            {uploading ? "Uploading..." : "Upload File"}
-          </Button>
+        <label className={`cursor-pointer inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 bg-zinc-100 text-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 px-3 py-1.5 text-sm ${uploading ? "opacity-50 pointer-events-none" : ""}`}>
+          {uploading ? "Uploading..." : "Upload File"}
           <input
             type="file"
             multiple
             onChange={handleUpload}
             className="hidden"
+            disabled={uploading}
           />
         </label>
       </div>
