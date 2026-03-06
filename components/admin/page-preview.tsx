@@ -14,7 +14,7 @@ export function PagePreview({ pageType, content, fullPath }: PagePreviewProps) {
 
   if (!template) {
     return (
-      <div className="flex h-full items-center justify-center text-sm text-zinc-400">
+      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
         No template found for page type &quot;{pageType}&quot;.
       </div>
     );
@@ -24,15 +24,15 @@ export function PagePreview({ pageType, content, fullPath }: PagePreviewProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-4 py-2 dark:border-zinc-700 dark:bg-zinc-800/50">
-        <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+      <div className="flex items-center justify-between border-b bg-muted/50 px-4 py-2">
+        <span className="text-xs font-medium text-muted-foreground">
           Preview
         </span>
-        <span className="text-xs text-zinc-400 dark:text-zinc-500">
+        <span className="text-xs text-muted-foreground">
           {fullPath}
         </span>
       </div>
-      <div className="flex-1 overflow-auto bg-white dark:bg-zinc-950">
+      <div className="flex-1 overflow-auto bg-background">
         {template({ content: templateContent, pageType, fullPath })}
       </div>
     </div>

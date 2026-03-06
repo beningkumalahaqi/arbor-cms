@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { PageLayout } from "@/components/ui";
-import { Card, CardTitle } from "@/components/ui";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -17,22 +17,34 @@ export default async function AdminDashboard() {
     <PageLayout title="Dashboard" description="Overview of your CMS content.">
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
-          <CardTitle>Total Pages</CardTitle>
-          <p className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            {pageCount}
-          </p>
+          <CardHeader>
+            <CardTitle>Total Pages</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold text-foreground">
+              {pageCount}
+            </p>
+          </CardContent>
         </Card>
         <Card>
-          <CardTitle>Published</CardTitle>
-          <p className="mt-2 text-3xl font-bold text-emerald-600">
-            {publishedCount}
-          </p>
+          <CardHeader>
+            <CardTitle>Published</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold text-primary">
+              {publishedCount}
+            </p>
+          </CardContent>
         </Card>
         <Card>
-          <CardTitle>Drafts</CardTitle>
-          <p className="mt-2 text-3xl font-bold text-amber-600">
-            {draftCount}
-          </p>
+          <CardHeader>
+            <CardTitle>Drafts</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold text-muted-foreground">
+              {draftCount}
+            </p>
+          </CardContent>
         </Card>
       </div>
     </PageLayout>

@@ -6,7 +6,7 @@ export function ArticleTemplate({ content }: PageTemplateProps) {
       <article>
         {/* Title */}
         {content.title && (
-          <h1 className="text-4xl font-bold leading-tight tracking-tight text-zinc-900 sm:text-5xl dark:text-zinc-100">
+          <h1 className="text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl">
             {content.title}
           </h1>
         )}
@@ -26,13 +26,13 @@ export function ArticleTemplate({ content }: PageTemplateProps) {
         {/* Content */}
         {content.content && (
           <div
-            className="prose prose-lg prose-zinc mt-10 max-w-none dark:prose-invert prose-headings:font-bold prose-a:text-blue-600 prose-img:rounded-lg dark:prose-a:text-blue-400"
+            className="prose prose-lg mt-10 max-w-none dark:prose-invert prose-headings:font-bold prose-a:text-primary prose-img:rounded-lg"
             dangerouslySetInnerHTML={{ __html: content.content }}
           />
         )}
 
         {!content.title && !content.imageBanner && !content.content && (
-          <p className="text-zinc-500">This article has no content yet.</p>
+          <p className="text-muted-foreground">This article has no content yet.</p>
         )}
       </article>
     </div>

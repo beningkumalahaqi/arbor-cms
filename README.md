@@ -1,8 +1,12 @@
+<p align="center">
+  <img src="public/Arbor.png" alt="Arbor CMS" width="120" />
+</p>
+
 # Arbor CMS
 
 A lightweight, structured Content Management System designed for developers who want full control over their content architecture.
 
-Built with Next.js, TypeScript, Prisma, and Tailwind CSS.
+Built with Next.js, TypeScript, Prisma, Tailwind CSS, and shadcn/ui.
 
 ---
 
@@ -43,8 +47,33 @@ Rich text properties use a full WYSIWYG editor powered by TipTap. The editor sup
 ### Page Editor with Live Preview
 When editing a page, the admin shows a split-pane layout: the edit form on the left and a live preview on the right. The preview renders using the same page templates as the public site, updating in real time as you type. A draggable divider between the panels lets you adjust the split to your preference (20%–80%). You can toggle the preview on or off, and a "View Live" link opens the published page in a new tab.
 
+### Theme System
+Arbor CMS has a dual-theme system that lets you control the admin interface and live site appearance independently. From **Settings > Theme**, you can choose between Auto, Light, or Dark for both:
+- **CMS Admin** — Applies to the admin panel, login, and setup pages.
+- **Live Site** — Applies to all public-facing pages.
+
+Auto follows your operating system preference. Themes are persisted in localStorage and apply instantly without page flicker thanks to an inline script that runs before React hydrates.
+
+### Site Navigation
+The live site includes a responsive navigation bar that displays top-level published pages. Navigation is configured through the Settings page:
+- **Enable/disable** the navigation bar globally.
+- **Site title** — text shown next to the logo.
+- **Logo image** — selected from the built-in file manager.
+
+Per-page control is available in the page editor for top-level pages:
+- **Show in Navigation** — toggle whether the page appears in the nav bar.
+- **Navigation Label** — custom display label (defaults to Title Case of the slug).
+
+Only top-level pages (not nested children) can appear in the navigation. On mobile, the nav collapses into a hamburger menu that opens a side panel overlay.
+
+### Site Footer
+A standard footer is rendered on all public pages with:
+- **Logo image** — selected from the file manager.
+- **Footer text** — displayed alongside an automatic copyright year.
+- **Enable/disable** toggle in Settings.
+
 ### Admin Panel
-A clean, consistent admin interface at `/admin` lets you manage pages, view registered page types, configure page type settings, and publish content. The sidebar is collapsible — click the chevron to shrink it to icon-only mode for more workspace. On first launch, you'll set up an initial administrator account — a Home page is created automatically so you can start building immediately.
+A clean, consistent admin interface at `/admin` lets you manage pages, view registered page types, configure page type settings, adjust theme preferences, configure navigation and footer, and publish content. The sidebar is collapsible — click the chevron to shrink it to icon-only mode for more workspace. On first launch, you'll set up an initial administrator account — a Home page is created automatically so you can start building immediately.
 
 ---
 
@@ -55,7 +84,9 @@ A clean, consistent admin interface at `/admin` lets you manage pages, view regi
 | Framework | Next.js (App Router) |
 | Language | TypeScript |
 | Database | Prisma ORM with libSQL adapter (SQLite-compatible, Turso-ready) |
-| Styling | Tailwind CSS |
+| UI Components | shadcn/ui (Radix primitives, class-variance-authority) |
+| Styling | Tailwind CSS with CSS variable design tokens (lime theme, oklch) |
+| Icons | Phosphor Icons |
 | Auth | Cookie-based sessions, bcrypt password hashing |
 | Rich Text | TipTap (ProseMirror) |
 
@@ -88,14 +119,17 @@ app/              → Pages and API routes (Next.js App Router)
     storage/      → File management API
   [[...slug]]/    → Catch-all public page routing
 components/
-  ui/             → Shared, reusable UI components
+  ui/             → Shared UI components (shadcn/ui-based: Button, Input, Card, Badge, Dialog, etc.)
   admin/          → Admin-specific components (sidebar, page tree, page preview, file explorer, rich text editor)
+  site/           → Live site components (navigation bar, footer, site layout wrapper)
+  theme-provider  → Dual-theme context provider (admin + live site)
 lib/
   auth/           → Authentication and session management
   page-types/     → Page Type definitions and registry
   page-template/  → Page Template components and registry
   properties/     → Property validation and defaults
   icons.ts        → Curated SVG icon set for page types
+  utils.ts        → Utility functions (cn class merger for shadcn/ui)
   storage/        → Database-backed file storage (types, DB operations, index)
 prisma/           → Database schema and migrations
 docs/             → Release notes and documentation
