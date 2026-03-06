@@ -50,8 +50,26 @@ Arbor CMS has a dual-theme system that lets you control the admin interface and 
 
 Auto follows your operating system preference. Themes are persisted in localStorage and apply instantly without page flicker thanks to an inline script that runs before React hydrates.
 
+### Site Navigation
+The live site includes a responsive navigation bar that displays top-level published pages. Navigation is configured through the Settings page:
+- **Enable/disable** the navigation bar globally.
+- **Site title** — text shown next to the logo.
+- **Logo image** — selected from the built-in file manager.
+
+Per-page control is available in the page editor for top-level pages:
+- **Show in Navigation** — toggle whether the page appears in the nav bar.
+- **Navigation Label** — custom display label (defaults to Title Case of the slug).
+
+Only top-level pages (not nested children) can appear in the navigation. On mobile, the nav collapses into a hamburger menu that opens a side panel overlay.
+
+### Site Footer
+A standard footer is rendered on all public pages with:
+- **Logo image** — selected from the file manager.
+- **Footer text** — displayed alongside an automatic copyright year.
+- **Enable/disable** toggle in Settings.
+
 ### Admin Panel
-A clean, consistent admin interface at `/admin` lets you manage pages, view registered page types, configure page type settings, adjust theme preferences, and publish content. The sidebar is collapsible — click the chevron to shrink it to icon-only mode for more workspace. On first launch, you'll set up an initial administrator account — a Home page is created automatically so you can start building immediately.
+A clean, consistent admin interface at `/admin` lets you manage pages, view registered page types, configure page type settings, adjust theme preferences, configure navigation and footer, and publish content. The sidebar is collapsible — click the chevron to shrink it to icon-only mode for more workspace. On first launch, you'll set up an initial administrator account — a Home page is created automatically so you can start building immediately.
 
 ---
 
@@ -99,6 +117,7 @@ app/              → Pages and API routes (Next.js App Router)
 components/
   ui/             → Shared UI components (shadcn/ui-based: Button, Input, Card, Badge, Dialog, etc.)
   admin/          → Admin-specific components (sidebar, page tree, page preview, file explorer, rich text editor)
+  site/           → Live site components (navigation bar, footer, site layout wrapper)
   theme-provider  → Dual-theme context provider (admin + live site)
 lib/
   auth/           → Authentication and session management

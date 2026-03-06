@@ -20,10 +20,11 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 ## Folder Structure
 - `app/` — Next.js App Router pages and API routes
 - `app/admin/` — Admin UI, protected by auth (layout checks session + redirects)
-- `app/api/` — REST endpoints: `bootstrap/`, `auth/`, `pages/`, `page-types/settings/`, `storage/`
+- `app/api/` — REST endpoints: `bootstrap/`, `auth/`, `pages/`, `page-types/settings/`, `storage/`, `site-settings/`, `site-navigation/`
 - `app/[[...slug]]/` — Catch-all route resolving `fullPath` from database
 - `components/ui/` — Shared reusable UI components (shadcn/ui-based: Button, Input, Textarea, Select, Card, Table, Badge, Label, Dialog, RadioGroup, Separator, Tooltip, FormField, PageLayout, PageTypeIcon)
 - `components/admin/` — Admin-specific components (AdminShell with collapsible sidebar, PageTree, PagePreview, FileExplorer with drag-and-drop and sortable columns, ImageSelectorModal, ImageField, RichTextEditor)
+- `components/site/` — Live site components (SiteNavigation with responsive hamburger menu, SiteFooter, SiteLayout wrapper)
 - `components/theme-provider.tsx` — Dual-theme context provider (admin theme + site theme, localStorage persistence)
 - `lib/auth/` — Authentication: credentials (bcrypt), session (cookie-based), helpers (requireAuth, requireRole)
 - `lib/page-types/` — Page Type definitions, registry, and type exports
@@ -34,7 +35,7 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - `lib/utils.ts` — `cn()` utility for merging Tailwind classes (clsx + tailwind-merge)
 - `lib/icons.ts` — Curated SVG icon definitions for page types (name, label, SVG path)
 - `lib/validation.ts` — Shared validators (email, slug, required fields)
-- `prisma/schema.prisma` — Database schema (User, Page, PageTypeSettings, StorageFile, StorageFolder models)
+- `prisma/schema.prisma` — Database schema (User, Page, PageTypeSettings, StorageFile, StorageFolder, SiteSettings models)
 - `docs/` — Release documentation
 - `guide/` — Developer guides for extending the CMS
 
@@ -44,8 +45,10 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - Role stored as string for future extensibility — not an enum
 
 ### Page
-- `id` (cuid), `parentId` (nullable self-relation), `slug`, `fullPath` (unique), `pageType`, `status` ("draft" | "published"), `content` (JSON as string), `sortOrder`
+- `id` (cuid), `parentId` (nullable self-relation), `slug`, `fullPath` (unique), `pageType`, `status` ("draft" | "published"), `content` (JSON as string), `sortOrder`, `showInNav` (int, 0/1), `navLabel` (string)
 - Self-relation `PageTree` for parent/children hierarchy
+- `showInNav` controls whether the page appears in the site navigation (only top-level pages)
+- `navLabel` is the custom label for the navigation; if empty, defaults to Title Case of the slug
 - Indexed on: `parentId`, `fullPath`, `status`
 
 ### PageTypeSettings
@@ -62,6 +65,12 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - `id` (cuid), `path` (unique), `createdAt`
 - Represents virtual folder structure for the file manager
 - Indexed on: `path`
+
+### SiteSettings
+- `id` (cuid), `navigationEnabled` (int, default 1), `navigationLogo` (string), `navigationTitle` (string, default "Arbor CMS"), `footerEnabled` (int, default 1), `footerLogo` (string), `footerText` (string)
+- Singleton row — only one record exists, upserted on save
+- Stores global site-wide settings for navigation and footer
+- Managed via admin Settings page and `/api/site-settings` endpoint
 
 ## Page Types
 - Defined in code under `lib/page-types/`, one file per type
@@ -161,8 +170,28 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 
 ## Settings
 - Settings page at `/admin/settings` — extensible for future settings sections
-- Currently contains: Theme settings (CMS Admin + Live Site selectors)
+- Contains: Theme settings, Navigation settings, Footer settings
+- **Navigation section**: Enable/disable toggle, site title input, logo image selector (from file manager)
+- **Footer section**: Enable/disable toggle, footer text input, logo image selector (from file manager)
 - Settings navigation entry is in the admin sidebar shell
+
+## Site Navigation
+- Responsive navigation bar rendered on the live (public) site
+- Component: `components/site/site-navigation.tsx` — sticky top bar with logo, title, and page links
+- Only **top-level published pages** (`parentId = null`, `showInNav = 1`, `status = "published"`) appear in nav
+- Child pages (nested under other pages) are excluded from navigation
+- Navigation label defaults to Title Case of the page slug; customizable via `navLabel` field in page editor
+- Per-page toggle: page editor shows "Show in Navigation" checkbox + label input for top-level pages only
+- Mobile: hamburger button opens a collapsible side panel overlay from the right
+- Configurable via Settings: enable/disable, logo image, site title
+- Data fetched server-side in the catch-all route (`app/[[...slug]]/page.tsx`) via Prisma — no client-side fetch
+- Public API: `GET /api/site-navigation` returns nav items + footer config (no auth required)
+
+## Site Footer
+- Standard footer rendered on the live (public) site
+- Component: `components/site/site-footer.tsx` — displays logo, text, and copyright year
+- Configurable via Settings: enable/disable, logo image, footer text
+- Site layout wrapper: `components/site/site-layout.tsx` — wraps page content with nav + footer
 
 ## Authentication & Authorization
 - SuperAdmin bootstrap: `/api/bootstrap` — disabled after first user created
@@ -189,6 +218,8 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - Page type settings managed via `/api/page-types/settings` (GET for list, PUT for upsert)
 - File management via `/api/storage` (GET list, POST create/upload/rename/move, DELETE) — all backed by database
 - File serving via `/api/storage/file/[...path]` (GET with caching headers, reads from database)
+- Site settings via `/api/site-settings` (GET for read, PUT for upsert — auth required for PUT)
+- Public navigation data via `/api/site-navigation` (GET, no auth — returns nav items + footer config)
 
 ## Security
 - Never trust client input
