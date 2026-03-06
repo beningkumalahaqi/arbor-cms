@@ -1,6 +1,6 @@
 # Project Coding Instructions
 
-This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, and Tailwind CSS.
+This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, Tailwind CSS, and shadcn/ui.
 
 ## General Rules
 - Prefer clarity over clever abstractions
@@ -22,14 +22,16 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - `app/admin/` — Admin UI, protected by auth (layout checks session + redirects)
 - `app/api/` — REST endpoints: `bootstrap/`, `auth/`, `pages/`, `page-types/settings/`, `storage/`
 - `app/[[...slug]]/` — Catch-all route resolving `fullPath` from database
-- `components/ui/` — Shared reusable UI components (Button, Input, Textarea, Select, Card, Table, FormField, PageLayout, PageTypeIcon)
+- `components/ui/` — Shared reusable UI components (shadcn/ui-based: Button, Input, Textarea, Select, Card, Table, Badge, Label, Dialog, RadioGroup, Separator, Tooltip, FormField, PageLayout, PageTypeIcon)
 - `components/admin/` — Admin-specific components (AdminShell with collapsible sidebar, PageTree, PagePreview, FileExplorer with drag-and-drop and sortable columns, ImageSelectorModal, ImageField, RichTextEditor)
+- `components/theme-provider.tsx` — Dual-theme context provider (admin theme + site theme, localStorage persistence)
 - `lib/auth/` — Authentication: credentials (bcrypt), session (cookie-based), helpers (requireAuth, requireRole)
 - `lib/page-types/` — Page Type definitions, registry, and type exports
 - `lib/page-template/` — Page Template components and registry (one template per page type)
 - `lib/properties/` — Property validation and default content builder
 - `lib/storage/` — Database-backed file storage module (types, DB operations, index re-exports)
 - `lib/db.ts` — PrismaClient singleton using libSQL adapter
+- `lib/utils.ts` — `cn()` utility for merging Tailwind classes (clsx + tailwind-merge)
 - `lib/icons.ts` — Curated SVG icon definitions for page types (name, label, SVG path)
 - `lib/validation.ts` — Shared validators (email, slug, required fields)
 - `prisma/schema.prisma` — Database schema (User, Page, PageTypeSettings, StorageFile, StorageFolder models)
@@ -131,14 +133,36 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - Both the editor form and preview panel are independently scrollable
 
 ## UI & Tailwind Rules
+- shadcn/ui is the component library — all base components come from shadcn (Button, Input, Card, Badge, Dialog, etc.)
+- shadcn configured with `new-york` style, `neutral` base color, `phosphor` icon library (`components.json`)
 - Tailwind CSS is the only styling solution
+- All colors use CSS variable design tokens (e.g., `text-foreground`, `bg-background`, `bg-muted`, `text-muted-foreground`, `border`, `bg-primary`, `text-destructive`) — never hardcode color values like `zinc-500` or `blue-600`
+- Dark mode uses class strategy: `@custom-variant dark (&:is(.dark *))` in globals.css
+- Lime theme defined via oklch CSS variables in `app/globals.css` for both `:root` and `.dark`
 - Tailwind Typography plugin (`@tailwindcss/typography`) used for `prose` classes in rich text rendering
 - Inline styles are allowed only for dynamic values (e.g., resizable split widths, editor max-height)
 - No duplicated utility class patterns across files
 - Reusable UI components must live in `/components/ui`
+- Use `cn()` from `lib/utils.ts` for conditional class merging
 - Use variants and composition instead of one-off styles
 - Admin pages must use the shared `AdminShell` layout via `app/admin/layout.tsx`
 - All admin page content should use `PageLayout` component for consistent headers
+
+## Theme System
+- Dual-theme: separate themes for CMS admin and live (public) site
+- `components/theme-provider.tsx` provides `ThemeProvider` context with `adminTheme`, `siteTheme`, `setAdminTheme`, `setSiteTheme`
+- Theme values: `"auto"` | `"dark"` | `"light"` — default is `"auto"` (follows OS preference)
+- Admin theme applies to routes starting with `/admin`, `/login`, `/setup`
+- Site theme applies to all other (public) routes
+- Themes persisted in `localStorage` under keys `theme-admin` and `theme-site`
+- Flash-prevention inline script in `app/layout.tsx` `<head>` reads the correct key based on initial pathname before React hydrates
+- Settings page at `app/admin/settings/page.tsx` provides a 3-option slider (Auto/Light/Dark) for each
+- `useTheme()` hook returns the current context values
+
+## Settings
+- Settings page at `/admin/settings` — extensible for future settings sections
+- Currently contains: Theme settings (CMS Admin + Live Site selectors)
+- Settings navigation entry is in the admin sidebar shell
 
 ## Authentication & Authorization
 - SuperAdmin bootstrap: `/api/bootstrap` — disabled after first user created
