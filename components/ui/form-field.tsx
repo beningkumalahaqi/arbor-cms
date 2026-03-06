@@ -1,4 +1,6 @@
 import { ReactNode } from "react";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 interface FormFieldProps {
   label: string;
@@ -14,12 +16,10 @@ export function FormField({
   className = "",
 }: FormFieldProps) {
   return (
-    <div className={`space-y-1.5 ${className}`}>
-      <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-        {label}
-      </label>
+    <div className={cn("space-y-2", className)}>
+      <Label>{label}</Label>
       {children}
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );
 }

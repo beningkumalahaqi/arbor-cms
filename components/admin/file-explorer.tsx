@@ -60,7 +60,7 @@ function getFileIcon(name: string, type: string): string {
 
 function SortArrow({ field, sortBy, sortOrder }: { field: SortField; sortBy: SortField; sortOrder: SortOrder }) {
   if (field !== sortBy) {
-    return <span className="ml-1 text-zinc-300 dark:text-zinc-600">↕</span>;
+    return <span className="ml-1 text-muted-foreground/40">↕</span>;
   }
   return (
     <span className="ml-1">
@@ -98,7 +98,7 @@ function FileRow({
       onDragLeave={entry.type === "directory" ? onDragLeave : undefined}
       onDrop={entry.type === "directory" ? (e) => onDrop(e, entry) : undefined}
       className={`group grid grid-cols-[1fr_6rem_8rem_8rem_7rem] items-center gap-2 rounded-md px-3 py-2 transition-colors
-        ${isDragOver ? "bg-blue-50 ring-2 ring-blue-400 dark:bg-blue-900/30 dark:ring-blue-500" : "hover:bg-zinc-100 dark:hover:bg-zinc-800/50"}
+        ${isDragOver ? "bg-primary/10 ring-2 ring-primary" : "hover:bg-accent"}
         ${entry.type === "directory" ? "cursor-grab" : "cursor-grab"}`}
     >
       {/* Name */}
@@ -110,7 +110,7 @@ function FileRow({
           <button
             type="button"
             onClick={() => onNavigate(entry.path)}
-            className="truncate text-left text-sm font-medium text-zinc-800 hover:text-blue-600 dark:text-zinc-200 dark:hover:text-blue-400"
+            className="truncate text-left text-sm font-medium text-foreground hover:text-primary"
           >
             {entry.name}
           </button>
@@ -119,7 +119,7 @@ function FileRow({
             href={`/api/storage/file/${entry.path}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="truncate text-sm text-zinc-700 hover:text-blue-600 dark:text-zinc-300 dark:hover:text-blue-400"
+            className="truncate text-sm text-foreground/80 hover:text-primary"
           >
             {entry.name}
           </a>
@@ -127,17 +127,17 @@ function FileRow({
       </div>
 
       {/* Size */}
-      <span className="text-right text-xs text-zinc-400 dark:text-zinc-500">
+      <span className="text-right text-xs text-muted-foreground">
         {entry.type === "file" ? formatSize(entry.size) : "—"}
       </span>
 
       {/* Date Added */}
-      <span className="text-right text-xs text-zinc-400 dark:text-zinc-500">
+      <span className="text-right text-xs text-muted-foreground">
         {formatDate(entry.createdAt)}
       </span>
 
       {/* Modified */}
-      <span className="text-right text-xs text-zinc-400 dark:text-zinc-500">
+      <span className="text-right text-xs text-muted-foreground">
         {formatDate(entry.modifiedAt)}
       </span>
 
@@ -146,14 +146,14 @@ function FileRow({
         <button
           type="button"
           onClick={() => onRename(entry.path, entry.name)}
-          className="rounded px-1.5 py-0.5 text-xs text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-200"
+          className="rounded px-1.5 py-0.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
         >
           Rename
         </button>
         <button
           type="button"
           onClick={() => onDelete(entry.path, entry.type)}
-          className="rounded px-1.5 py-0.5 text-xs text-red-500 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300"
+          className="rounded px-1.5 py-0.5 text-xs text-destructive hover:bg-destructive/10"
         >
           Delete
         </button>
@@ -324,7 +324,7 @@ export function FileExplorer({
     }
   }, [currentPath, onRefresh]);
 
-  const headerClasses = "cursor-pointer select-none text-xs font-medium uppercase tracking-wide text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors";
+  const headerClasses = "cursor-pointer select-none text-xs font-medium uppercase tracking-wide text-muted-foreground hover:text-foreground transition-colors";
 
   return (
     <div className="space-y-4">
@@ -333,7 +333,7 @@ export function FileExplorer({
         <Button size="sm" variant="secondary" onClick={() => setShowNewFolder(!showNewFolder)}>
           New Folder
         </Button>
-        <label className={`cursor-pointer inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 bg-zinc-100 text-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 px-3 py-1.5 text-sm ${uploading ? "opacity-50 pointer-events-none" : ""}`}>
+        <label className={`cursor-pointer inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 px-3 py-1.5 text-sm ${uploading ? "opacity-50 pointer-events-none" : ""}`}>
           {uploading ? "Uploading..." : "Upload File"}
           <input
             type="file"
@@ -353,7 +353,7 @@ export function FileExplorer({
             value={newFolderName}
             onChange={(e) => setNewFolderName(e.target.value)}
             placeholder="Folder name"
-            className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+            className="rounded-md border px-3 py-1.5 text-sm bg-background text-foreground focus:border-ring focus:outline-none"
             onKeyDown={(e) => {
               if (e.key === "Enter") handleCreateFolder();
               if (e.key === "Escape") setShowNewFolder(false);
@@ -374,17 +374,17 @@ export function FileExplorer({
         <button
           type="button"
           onClick={() => onNavigate("")}
-          className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+          className="font-medium text-primary hover:text-primary/80"
         >
           storage
         </button>
         {breadcrumbs.map((bc) => (
           <span key={bc.path} className="flex items-center gap-1">
-            <span className="text-zinc-400">/</span>
+            <span className="text-muted-foreground">/</span>
             <button
               type="button"
               onClick={() => onNavigate(bc.path)}
-              className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+              className="font-medium text-primary hover:text-primary/80"
             >
               {bc.label}
             </button>
@@ -393,9 +393,9 @@ export function FileExplorer({
       </div>
 
       {/* File List */}
-      <div className="rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="rounded-lg border bg-card">
         {/* Header */}
-        <div className="grid grid-cols-[1fr_6rem_8rem_8rem_7rem] items-center gap-2 border-b border-zinc-200 px-3 py-2 dark:border-zinc-800">
+        <div className="grid grid-cols-[1fr_6rem_8rem_8rem_7rem] items-center gap-2 border-b px-3 py-2">
           <button type="button" className={`${headerClasses} text-left`} onClick={() => handleSort("name")}>
             Name <SortArrow field="name" sortBy={sortBy} sortOrder={sortOrder} />
           </button>
@@ -429,8 +429,8 @@ export function FileExplorer({
             }}
             onDragLeave={() => setDragOverPath(null)}
             onDrop={handleDropOnParent}
-            className={`grid w-full grid-cols-[1fr_6rem_8rem_8rem_7rem] items-center gap-2 px-3 py-2 text-sm text-zinc-500 transition-colors dark:text-zinc-400
-              ${dragOverPath === "__parent__" ? "bg-blue-50 ring-2 ring-blue-400 dark:bg-blue-900/30 dark:ring-blue-500" : "hover:bg-zinc-50 dark:hover:bg-zinc-800/50"}`}
+            className={`grid w-full grid-cols-[1fr_6rem_8rem_8rem_7rem] items-center gap-2 px-3 py-2 text-sm text-muted-foreground transition-colors
+              ${dragOverPath === "__parent__" ? "bg-primary/10 ring-2 ring-primary" : "hover:bg-accent"}`}
           >
             <div className="flex items-center gap-2">
               <span>⬆️</span>
@@ -446,11 +446,11 @@ export function FileExplorer({
         {/* Entries */}
         <div className="py-1">
           {entries.length === 0 && !currentPath ? (
-            <div className="px-4 py-12 text-center text-sm text-zinc-400 dark:text-zinc-500">
+            <div className="px-4 py-12 text-center text-sm text-muted-foreground">
               No files or folders yet. Create a folder or upload a file to get started.
             </div>
           ) : entries.length === 0 ? (
-            <div className="px-4 py-8 text-center text-sm text-zinc-400 dark:text-zinc-500">
+            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
               This folder is empty.
             </div>
           ) : (
@@ -472,7 +472,7 @@ export function FileExplorer({
         </div>
       </div>
 
-      <p className="text-xs text-zinc-400 dark:text-zinc-500">
+      <p className="text-xs text-muted-foreground">
         Drag files or folders onto a folder to move them.
       </p>
     </div>

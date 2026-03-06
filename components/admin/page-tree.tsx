@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { PageTypeIcon } from "@/components/ui";
+import { Badge } from "@/components/ui/badge";
 import { getIconByName } from "@/lib/icons";
 
 interface TreePage {
@@ -44,16 +45,14 @@ function TreeNode({ page, children, allPages, settings, level }: TreeNodeProps) 
   return (
     <div>
       <div
-        className={`group flex items-center gap-1.5 rounded-md px-2 py-1.5 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800/50 ${
-          level === 0 ? "" : ""
-        }`}
+        className="group flex items-center gap-1.5 rounded-md px-2 py-1.5 transition-colors hover:bg-accent"
         style={{ paddingLeft: `${level * 20 + 8}px` }}
       >
         {/* Expand/collapse toggle */}
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
-          className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300 ${
+          className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:text-foreground ${
             hasChildren ? "visible" : "invisible"
           }`}
         >
@@ -75,7 +74,7 @@ function TreeNode({ page, children, allPages, settings, level }: TreeNodeProps) 
         </button>
 
         {/* Icon */}
-        <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded text-zinc-500 dark:text-zinc-400">
+        <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded text-muted-foreground">
           <PageTypeIcon iconPath={iconDef?.path ?? ""} size={15} />
         </div>
 
@@ -84,39 +83,33 @@ function TreeNode({ page, children, allPages, settings, level }: TreeNodeProps) 
           href={`/admin/pages/${page.id}`}
           className="flex flex-1 items-center gap-2 truncate"
         >
-          <span className="truncate text-sm font-medium text-zinc-800 dark:text-zinc-200">
+          <span className="truncate text-sm font-medium text-foreground">
             {page.pageType === "home" ? "Home" : page.slug}
           </span>
-          <span className="truncate text-xs text-zinc-400 dark:text-zinc-500">
+          <span className="truncate text-xs text-muted-foreground">
             {page.fullPath}
           </span>
         </Link>
 
         {/* Status + Type badges */}
         <div className="flex flex-shrink-0 items-center gap-2">
-          <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+          <Badge variant="secondary" className="text-[10px]">
             {page.pageType}
-          </span>
-          <span
-            className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-              page.status === "published"
-                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-            }`}
-          >
+          </Badge>
+          <Badge variant={page.status === "published" ? "default" : "outline"} className="text-[10px]">
             {page.status}
-          </span>
+          </Badge>
           <a
             href={page.fullPath}
             target="_blank"
             rel="noopener noreferrer"
-            className="invisible text-xs font-medium text-blue-500 hover:text-blue-700 group-hover:visible dark:text-blue-400 dark:hover:text-blue-300"
+            className="invisible text-xs font-medium text-primary hover:text-primary/80 group-hover:visible"
           >
             View
           </a>
           <Link
             href={`/admin/pages/${page.id}`}
-            className="invisible text-xs font-medium text-zinc-500 hover:text-zinc-700 group-hover:visible dark:text-zinc-400 dark:hover:text-zinc-200"
+            className="invisible text-xs font-medium text-muted-foreground hover:text-foreground group-hover:visible"
           >
             Edit
           </Link>
@@ -153,8 +146,8 @@ export function PageTree({ pages, settings }: PageTreeProps) {
 
   if (pages.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700">
-        <p className="text-zinc-500 dark:text-zinc-400">
+      <div className="rounded-lg border border-dashed p-12 text-center">
+        <p className="text-muted-foreground">
           No pages yet. Create your first page to get started.
         </p>
       </div>
@@ -162,9 +155,9 @@ export function PageTree({ pages, settings }: PageTreeProps) {
   }
 
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="rounded-lg border bg-card">
       {/* Header */}
-      <div className="flex items-center border-b border-zinc-200 px-4 py-2 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+      <div className="flex items-center border-b px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
         <span className="flex-1">Page</span>
         <span className="w-32 text-right">Type / Status</span>
       </div>

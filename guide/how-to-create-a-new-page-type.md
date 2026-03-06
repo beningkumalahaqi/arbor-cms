@@ -79,17 +79,17 @@ export function BlogPostTemplate({ content }: PageTemplateProps) {
     <div className="mx-auto max-w-3xl px-6 py-16">
       <article>
         {content.title && (
-          <h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+          <h1 className="text-4xl font-bold tracking-tight text-foreground">
             {content.title}
           </h1>
         )}
         {content.summary && (
-          <p className="mt-4 text-lg text-zinc-600 dark:text-zinc-400">
+          <p className="mt-4 text-lg text-muted-foreground">
             {content.summary}
           </p>
         )}
         {content.body && (
-          <div className="prose mt-8 max-w-none text-zinc-700 dark:text-zinc-300">
+          <div className="prose mt-8 max-w-none text-foreground/80 dark:prose-invert">
             {content.body.split("\n").map((paragraph, i) => (
               <p key={i}>{paragraph}</p>
             ))}

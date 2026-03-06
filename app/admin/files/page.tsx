@@ -107,7 +107,7 @@ export default function FilesPage() {
       description="Manage files and folders in the storage directory."
     >
       {loading && entries.length === 0 ? (
-        <p className="text-zinc-500">Loading...</p>
+        <p className="text-muted-foreground">Loading...</p>
       ) : (
         <FileExplorer
           entries={entries}
