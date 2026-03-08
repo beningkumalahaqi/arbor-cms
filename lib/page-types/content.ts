@@ -9,7 +9,7 @@ export const contentPageType: PageTypeDefinition = {
       name: "title",
       label: "Title",
       type: "text",
-      required: true,
+      required: false,
       defaultValue: "",
     },
     {

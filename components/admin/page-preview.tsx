@@ -2,14 +2,17 @@
 
 import { getTemplate } from "@/lib/page-template";
 import type { PageContent } from "@/lib/page-types";
+import type { WidgetInstance } from "@/lib/widgets/types";
 
 interface PagePreviewProps {
   pageType: string;
   content: Record<string, string>;
   fullPath: string;
+  pageId?: string;
+  widgets?: WidgetInstance[];
 }
 
-export function PagePreview({ pageType, content, fullPath }: PagePreviewProps) {
+export function PagePreview({ pageType, content, fullPath, pageId, widgets }: PagePreviewProps) {
   const template = getTemplate(pageType);
 
   if (!template) {
@@ -33,7 +36,7 @@ export function PagePreview({ pageType, content, fullPath }: PagePreviewProps) {
         </span>
       </div>
       <div className="flex-1 overflow-auto bg-background">
-        {template({ content: templateContent, pageType, fullPath })}
+        {template({ content: templateContent, pageType, fullPath, pageId, widgets })}
       </div>
     </div>
   );

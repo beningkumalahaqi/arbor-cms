@@ -1,6 +1,22 @@
 import type { PageTemplateProps } from "./types";
+import type { WidgetAreaDefinition } from "@/lib/widgets/types";
+import { WidgetArea } from "@/lib/widgets/renderer";
 
-export function ArticleTemplate({ content }: PageTemplateProps) {
+// ─── Widget Area Definitions for Article Template ────────────────────
+export const articleAreas: WidgetAreaDefinition[] = [
+  {
+    name: "after-banner",
+    label: "After Banner",
+    allowedWidgets: ["heading", "rich-text", "image", "button", "divider", "spacer", "columns", "section", "html"],
+    maxWidgets: 10,
+  },
+  {
+    name: "after-content",
+    label: "After Content",
+  },
+];
+
+export function ArticleTemplate({ content, fullPath, pageId, widgets = [] }: PageTemplateProps) {
   return (
     <div className="mx-auto max-w-4xl px-6 py-16">
       <article>
@@ -23,6 +39,16 @@ export function ArticleTemplate({ content }: PageTemplateProps) {
           </div>
         )}
 
+        {/* After banner widget area */}
+        <div className="mt-8">
+          <WidgetArea
+            area={articleAreas[0]}
+            widgets={widgets}
+            pageId={pageId || ""}
+            fullPath={fullPath}
+          />
+        </div>
+
         {/* Content */}
         {content.content && (
           <div
@@ -31,9 +57,19 @@ export function ArticleTemplate({ content }: PageTemplateProps) {
           />
         )}
 
-        {!content.title && !content.imageBanner && !content.content && (
+        {!content.title && !content.imageBanner && !content.content && widgets.length === 0 && (
           <p className="text-muted-foreground">This article has no content yet.</p>
         )}
+
+        {/* After content widget area */}
+        <div className="mt-10">
+          <WidgetArea
+            area={articleAreas[1]}
+            widgets={widgets}
+            pageId={pageId || ""}
+            fullPath={fullPath}
+          />
+        </div>
       </article>
     </div>
   );
