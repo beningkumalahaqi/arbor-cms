@@ -1,2 +1,2 @@
-export type { PageTemplateProps, PageTemplateComponent } from "./types";
-export { getTemplate, getAllTemplates } from "./registry";
+export type { PageTemplateProps, PageTemplateComponent, TemplateRegistration } from "./types";
+export { getTemplate, getTemplateAreas, getTemplateRegistration, getAllTemplates } from "./registry";

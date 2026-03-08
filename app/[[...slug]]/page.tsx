@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import type { PageContent } from "@/lib/page-types";
 import { getTemplate } from "@/lib/page-template";
 import { SiteLayout } from "@/components/site/site-layout";
+import type { WidgetInstance } from "@/lib/widgets/types";
 
 export const dynamic = "force-dynamic";
 
@@ -22,9 +23,12 @@ export default async function CatchAllPage({ params }: CatchAllPageProps) {
   const { slug } = await params;
   const fullPath = slug ? `/${slug.join("/")}` : "/";
 
-  // Fetch page and site layout data in parallel
+  // Fetch page, widgets, and site layout data in parallel
   const [page, siteSettings, navPages] = await Promise.all([
-    prisma.page.findUnique({ where: { fullPath } }),
+    prisma.page.findUnique({
+      where: { fullPath },
+      include: { widgets: { orderBy: [{ area: "asc" }, { sortOrder: "asc" }] } },
+    }),
     prisma.siteSettings.findFirst(),
     prisma.page.findMany({
       where: { showInNav: 1, status: "published", parentId: null },
@@ -47,6 +51,18 @@ export default async function CatchAllPage({ params }: CatchAllPageProps) {
   if (!template) {
     notFound();
   }
+
+  // Parse widgets
+  const widgets: WidgetInstance[] = (page.widgets || []).map((w) => ({
+    id: w.id,
+    pageId: w.pageId,
+    area: w.area,
+    type: w.type,
+    props: JSON.parse(w.props),
+    sortOrder: w.sortOrder,
+    parentId: w.parentId,
+    slot: w.slot,
+  }));
 
   const navigationEnabled = siteSettings ? siteSettings.navigationEnabled === 1 : true;
   const footerEnabled = siteSettings ? siteSettings.footerEnabled === 1 : true;
@@ -74,6 +90,8 @@ export default async function CatchAllPage({ params }: CatchAllPageProps) {
         content,
         pageType: page.pageType,
         fullPath: page.fullPath,
+        pageId: page.id,
+        widgets,
       })}
     </SiteLayout>
   );

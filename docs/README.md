@@ -75,6 +75,23 @@ A standard footer is rendered on all public pages with:
 ### Admin Panel
 A clean, consistent admin interface at `/admin` lets you manage pages, view registered page types, configure page type settings, adjust theme preferences, configure navigation and footer, and publish content. The sidebar is collapsible — click the chevron to shrink it to icon-only mode for more workspace. On first launch, you'll set up an initial administrator account — a Home page is created automatically so you can start building immediately.
 
+### Widget System
+Widgets are composable content blocks that can be added to any page through the admin UI. Each page template defines named widget areas (e.g., "main", "sidebar"), and admins can add, configure, reorder, and remove widgets within those areas. The system includes 12 built-in widgets across 5 categories:
+
+- **Content** — Heading, Rich Text, Button
+- **Media** — Image, Hero Banner
+- **Layout** — Section (container), Columns (container), Spacer, Divider
+- **Interactive** — Form
+- **Advanced** — Page List, HTML
+
+Widget props are configurable per type — text, rich text, images, colors, booleans, select dropdowns, and more. Widgets are defined in code but managed entirely through the admin interface.
+
+### Container Widgets
+Section and Columns are special container widgets that wrap other widgets inside them. Section provides a styled wrapper with background color and padding options. Columns arranges child widgets into a 2 or 3 column grid with configurable layout ratios. Child widgets are placed into named slots, and containers cannot be nested inside other containers. The admin widget editor shows inline slot management when editing a container.
+
+### Form System
+The Form widget lets admins create custom forms with configurable fields (text, email, textarea, select, checkbox, radio). Form definitions are stored independently as **Form Types**, which survive even if the original widget is deleted. When creating a Form widget, admins can reuse an existing Form Type or create a new one. Submissions are viewable in a dedicated admin section at `/admin/forms`, grouped by Form Type.
+
 ---
 
 ## Project Structure
@@ -83,12 +100,16 @@ A clean, consistent admin interface at `/admin` lets you manage pages, view regi
 app/              → Pages and API routes (Next.js App Router)
   admin/          → Admin UI (protected)
     files/        → File manager page
+    forms/        → Form submissions admin pages
   api/            → REST endpoints for mutations
     storage/      → File management API
+    widgets/      → Widget CRUD, areas, reorder, form-submit, page-list
+    form-types/   → FormType CRUD API
+    forms/        → Form submission queries
   [[...slug]]/    → Catch-all public page routing
 components/
   ui/             → Shared UI components (shadcn/ui-based: Button, Input, Card, Badge, Dialog, etc.)
-  admin/          → Admin-specific components (sidebar, page tree, page preview, file explorer, rich text editor)
+  admin/          → Admin-specific components (sidebar, page tree, page preview, file explorer, rich text editor, widget editor, form elements editor)
   site/           → Live site components (navigation bar, footer, site layout wrapper)
   theme-provider  → Dual-theme context provider (admin + live site)
 lib/
@@ -96,6 +117,7 @@ lib/
   page-types/     → Page Type definitions and registry
   page-template/  → Page Template components and registry
   properties/     → Property validation and defaults
+  widgets/        → Widget system (types, registry, renderer, definitions, renderers)
   icons.ts        → Curated SVG icon set for page types
   utils.ts        → Utility functions (cn class merger for shadcn/ui)
   storage/        → Database-backed file storage (types, DB operations, index)
@@ -110,11 +132,15 @@ guide/            → Developer guides for extending the CMS
 
 - [How to Create a New Page Type](../guide/how-to-create-a-new-page-type.md)
 - [How to Create New Properties](../guide/how-to-create-new-properties.md)
+- [How to Create a New Widget](../guide/how-to-create-a-new-widget.md)
+- [How to Create a Form](../guide/how-to-create-a-form.md)
+- [How Forms Work](../guide/how-forms-work.md)
 
 ---
 
 ## Release Notes
 
+- [v2.0.0](v2.0.0-update.md)
 - [v1.5.0](v1.5.0-update.md)
 - [v1.4.0](v1.4.0-update.md)
 - [v1.3.2](v1.3.2-update.md)
