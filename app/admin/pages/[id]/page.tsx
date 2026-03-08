@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { PageLayout, Card, Button, Input, FormField, RadioGroup, RadioGroupItem, Label } from "@/components/ui";
+import { PageLayout, Card, Button, Input, FormField, RadioGroup, RadioGroupItem, Label, Badge } from "@/components/ui";
 import { ImageField } from "@/components/admin/image-field";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { PagePreview } from "@/components/admin/page-preview";
+import { WidgetEditor } from "@/components/admin/widget-editor";
 import { getPageType, type PageTypeDefinition } from "@/lib/page-types";
+import type { WidgetAreaDefinition, WidgetInstance } from "@/lib/widgets/types";
 
 interface PageData {
   id: string;
@@ -36,6 +38,9 @@ export default function EditPagePage() {
   const [navLabel, setNavLabel] = useState("");
   const [showPreview, setShowPreview] = useState(true);
   const [splitPercent, setSplitPercent] = useState(50);
+  const [activeTab, setActiveTab] = useState<"content" | "widgets">("content");
+  const [widgetAreas, setWidgetAreas] = useState<WidgetAreaDefinition[]>([]);
+  const [pageWidgets, setPageWidgets] = useState<WidgetInstance[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
 
@@ -78,6 +83,30 @@ export default function EditPagePage() {
           setNavLabel(data.page.navLabel ?? "");
           const td = getPageType(data.page.pageType);
           setTypeDef(td ?? null);
+
+          // Fetch widget areas for this page type
+          fetch(`/api/widgets/areas?pageType=${data.page.pageType}`)
+            .then((r) => r.json())
+            .then((areaData) => {
+              if (areaData.areas) {
+                setWidgetAreas(areaData.areas);
+              }
+            })
+            .catch(() => {});
+
+          // Fetch existing widgets for this page
+          fetch(`/api/widgets?pageId=${pageId}`)
+            .then((r) => r.json())
+            .then((widgetData) => {
+              if (widgetData.widgets) {
+                const parsed = widgetData.widgets.map((w: { id: string; pageId: string; area: string; type: string; props: string; sortOrder: number; parentId: string | null; slot: string }) => ({
+                  ...w,
+                  props: typeof w.props === "string" ? JSON.parse(w.props) : w.props,
+                }));
+                setPageWidgets(parsed);
+              }
+            })
+            .catch(() => {});
         }
         setLoading(false);
       });
@@ -168,7 +197,40 @@ export default function EditPagePage() {
       <div ref={containerRef} className={showPreview ? "flex" : ""}>
       <div style={showPreview ? { width: `${splitPercent}%` } : undefined} className={showPreview ? "min-w-0 shrink-0 pr-0" : ""}>
       <Card className={showPreview ? "h-[calc(100vh-10rem)] overflow-hidden flex flex-col" : "max-w-2xl"}>
-        <form onSubmit={handleSave} className={`space-y-4 ${showPreview ? "flex-1 overflow-auto p-4" : ""}`}>
+        {/* Tab Header */}
+        {widgetAreas.length > 0 && (
+          <div className="flex items-center border-b bg-muted/30">
+            <button
+              onClick={() => setActiveTab("content")}
+              className={`px-4 py-2.5 text-sm font-medium transition-colors ${
+                activeTab === "content"
+                  ? "border-b-2 border-primary text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Content
+            </button>
+            <button
+              onClick={() => setActiveTab("widgets")}
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition-colors ${
+                activeTab === "widgets"
+                  ? "border-b-2 border-primary text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Widgets
+              {pageWidgets.length > 0 && (
+                <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                  {pageWidgets.length}
+                </Badge>
+              )}
+            </button>
+          </div>
+        )}
+
+        {/* Content Tab */}
+        <div className={activeTab === "content" ? "flex-1 overflow-auto" : "hidden"}>
+        <form onSubmit={handleSave} className={`space-y-4 ${showPreview ? "flex-1 overflow-auto p-4" : "p-4"}`}>
           {error && (
             <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
               {error}
@@ -273,6 +335,20 @@ export default function EditPagePage() {
             </Button>
           </div>
         </form>
+        </div>
+
+        {/* Widgets Tab */}
+        {widgetAreas.length > 0 && (
+          <div className={activeTab === "widgets" ? "flex-1 overflow-auto p-4" : "hidden"}>
+            <WidgetEditor
+              pageId={pageId}
+              areas={widgetAreas}
+              widgets={pageWidgets}
+              onWidgetsChange={setPageWidgets}
+            />
+          </div>
+        )}
+
       </Card>
       </div>
 
@@ -291,6 +367,8 @@ export default function EditPagePage() {
                 pageType={page.pageType}
                 content={content}
                 fullPath={page.fullPath}
+                pageId={pageId}
+                widgets={pageWidgets}
               />
             </Card>
           </div>
