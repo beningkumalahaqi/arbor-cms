@@ -36,8 +36,9 @@ model Page {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  parent   Page?  @relation("PageTree", fields: [parentId], references: [id])
-  children Page[] @relation("PageTree")
+  parent   Page?    @relation("PageTree", fields: [parentId], references: [id])
+  children Page[]   @relation("PageTree")
+  widgets  Widget[]
 
   @@index([parentId])
   @@index([fullPath])
@@ -86,4 +87,49 @@ model SiteSettings {
   footerText        String   @default("")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+}
+
+model Widget {
+  id        String   @id @default(cuid())
+  pageId    String
+  area      String
+  type      String
+  props     String   @default("{}")
+  sortOrder Int      @default(0)
+  parentId  String?
+  slot      String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  page     Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  parent   Widget?  @relation("WidgetTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children Widget[] @relation("WidgetTree")
+
+  @@index([pageId])
+  @@index([pageId, area])
+  @@index([parentId])
+}
+
+model FormSubmission {
+  id         String   @id @default(cuid())
+  widgetId   String
+  formTypeId String   @default("")
+  formName   String
+  pageId     String
+  data       String   @default("{}")
+  createdAt  DateTime @default(now())
+
+  @@index([widgetId])
+  @@index([pageId])
+  @@index([formTypeId])
+}
+
+model FormType {
+  id        String   @id @default(cuid())
+  name      String
+  elements  String   @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
 }
