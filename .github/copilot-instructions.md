@@ -20,10 +20,11 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 ## Folder Structure
 - `app/` — Next.js App Router pages and API routes
 - `app/admin/` — Admin UI, protected by auth (layout checks session + redirects)
-- `app/api/` — REST endpoints: `bootstrap/`, `auth/`, `pages/`, `page-types/settings/`, `storage/`, `site-settings/`, `site-navigation/`
+- `app/admin/forms/` — Form submissions admin pages (list + detail)
+- `app/api/` — REST endpoints: `bootstrap/`, `auth/`, `pages/`, `page-types/settings/`, `storage/`, `site-settings/`, `site-navigation/`, `widgets/`, `form-types/`, `forms/`
 - `app/[[...slug]]/` — Catch-all route resolving `fullPath` from database
 - `components/ui/` — Shared reusable UI components (shadcn/ui-based: Button, Input, Textarea, Select, Card, Table, Badge, Label, Dialog, RadioGroup, Separator, Tooltip, FormField, PageLayout, PageTypeIcon)
-- `components/admin/` — Admin-specific components (AdminShell with collapsible sidebar, PageTree, PagePreview, FileExplorer with drag-and-drop and sortable columns, ImageSelectorModal, ImageField, RichTextEditor)
+- `components/admin/` — Admin-specific components (AdminShell with collapsible sidebar, PageTree, PagePreview, FileExplorer, ImageSelectorModal, ImageField, RichTextEditor, WidgetEditor, FormElementsEditor)
 - `components/site/` — Live site components (SiteNavigation with responsive hamburger menu, SiteFooter, SiteLayout wrapper)
 - `components/theme-provider.tsx` — Dual-theme context provider (admin theme + site theme, localStorage persistence)
 - `lib/auth/` — Authentication: credentials (bcrypt), session (cookie-based), helpers (requireAuth, requireRole)
@@ -31,11 +32,14 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - `lib/page-template/` — Page Template components and registry (one template per page type)
 - `lib/properties/` — Property validation and default content builder
 - `lib/storage/` — Database-backed file storage module (types, DB operations, index re-exports)
+- `lib/widgets/` — Widget system: types, registry, renderer, definitions, renderers
+- `lib/widgets/definitions/` — Widget definition files (one per widget type)
+- `lib/widgets/renderers/` — Widget renderer components (one per widget type)
 - `lib/db.ts` — PrismaClient singleton using libSQL adapter
 - `lib/utils.ts` — `cn()` utility for merging Tailwind classes (clsx + tailwind-merge)
 - `lib/icons.ts` — Curated SVG icon definitions for page types (name, label, SVG path)
 - `lib/validation.ts` — Shared validators (email, slug, required fields)
-- `prisma/schema.prisma` — Database schema (User, Page, PageTypeSettings, StorageFile, StorageFolder, SiteSettings models)
+- `prisma/schema.prisma` — Database schema (User, Page, PageTypeSettings, StorageFile, StorageFolder, SiteSettings, Widget, FormSubmission, FormType models)
 - `docs/` — Release documentation
 - `guide/` — Developer guides for extending the CMS
 
@@ -71,6 +75,24 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - Singleton row — only one record exists, upserted on save
 - Stores global site-wide settings for navigation and footer
 - Managed via admin Settings page and `/api/site-settings` endpoint
+
+### Widget
+- `id` (cuid), `pageId` (relation to Page), `area` (string), `type` (string), `props` (JSON as string), `sortOrder` (int)
+- `parentId` (nullable self-relation for nesting), `slot` (string, default "")
+- Self-relation `WidgetTree` for parent/children hierarchy (container widget support)
+- Cascade delete: widgets are deleted when their parent page is deleted; child widgets cascade from parent widget
+- Indexed on: `pageId`, `pageId+area`, `parentId`
+
+### FormSubmission
+- `id` (cuid), `widgetId` (string), `pageId` (string), `data` (JSON as string), `createdAt`
+- `formTypeId` (string, default "") — links to FormType for grouping
+- Indexed on: `widgetId`, `pageId`, `formTypeId`
+
+### FormType
+- `id` (cuid), `name` (string), `elements` (JSON array as string), `createdAt`, `updatedAt`
+- Stores form structure independently — survives widget deletion
+- Used to group submissions and reuse form definitions across widgets
+- Indexed on: `name`
 
 ## Page Types
 - Defined in code under `lib/page-types/`, one file per type
@@ -114,6 +136,47 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - Templates are also used by the admin preview panel (`components/admin/page-preview.tsx`) to render live previews during editing
 - Templates must be compatible with both server and client rendering since the preview runs client-side
 - Adding a new template: create component file in `lib/page-template/`, import and register in registry.ts
+
+## Widget System
+- Widgets are composable content blocks that can be added to any page via the admin UI
+- Defined in code under `lib/widgets/definitions/`, one file per widget type
+- Registered in `lib/widgets/registry.ts` via `register()` call
+- Each widget declares: `type`, `label`, `description`, `icon`, `category`, `propSchema`
+- 12 built-in widgets: heading, rich-text, image, button, section, columns, spacer, divider, page-list, form, html, hero-banner
+- 5 categories: `content`, `media`, `layout`, `interactive`, `advanced`
+- Widget props support 10 types: `text`, `textarea`, `richText`, `number`, `select`, `image`, `color`, `boolean`, `url`, `formElements`
+- Adding a new widget: create definition file, register in widget registry, create renderer, register renderer, add case to WidgetItem switch
+- See `guide/how-to-create-a-new-widget.md` for step-by-step
+
+## Widget Rendering
+- `lib/widgets/renderer.tsx` contains `WidgetItem` (renders a single widget) and `WidgetArea` (renders all widgets in an area)
+- `lib/widgets/renderers/registry.ts` maps widget types to React renderer components
+- Each renderer receives the widget's `props` object plus optional `allWidgets` and `renderWidget` for container support
+- `WidgetArea` filters for top-level widgets (no parentId) in the specified area, then passes the full widget array as `allWidgets`
+- Templates declare `WidgetAreaDefinition[]` to specify named areas (e.g., `"main"`, `"sidebar"`)
+- The catch-all route loads widgets from the database and passes them to the template for rendering
+
+## Container Widgets
+- Section and Columns widgets are containers that wrap other widgets (not their own content)
+- Container widgets declare `isContainer: true` and `slots: WidgetSlotDefinition[]` in their definition
+- Each slot has a `name`, `label`, optional `allowedWidgets` filter, and optional `maxWidgets` limit
+- Section has one slot: `"content"` — Columns has up to three: `"column1"`, `"column2"`, `"column3"`
+- Child widgets are stored in the database with `parentId` pointing to the container and `slot` identifying the slot
+- Container renderers use a render-prop pattern: they receive a `renderWidget` callback and call it for each child
+- Containers **cannot** be nested inside other containers (prevents infinite recursion)
+- The widget editor shows inline slot management when editing a container widget
+
+## Form System
+- The Form widget lets admins create custom forms with configurable fields
+- Form structure is stored in the `FormType` model, independent from widgets — survives widget deletion
+- Each Form widget references a `formTypeId` in its props
+- FormTypes are auto-created when saving a form widget or on first submission
+- When adding a Form widget, admins can reuse an existing FormType or create a new one
+- Form elements support types: text, email, textarea, select, checkbox, radio, button
+- Submissions are stored in `FormSubmission` with `formTypeId` linking to the FormType
+- If a linked FormType is deleted, the widget editor shows an error banner with a "Create Form Type" option
+- Admin form submissions page at `/admin/forms` groups submissions by FormType
+- See `guide/how-to-create-a-form.md` and `guide/how-forms-work.md` for details
 
 ## Properties System
 - Properties are defined per Page Type via `PropertyDefinition[]`
@@ -220,6 +283,13 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - File serving via `/api/storage/file/[...path]` (GET with caching headers, reads from database)
 - Site settings via `/api/site-settings` (GET for read, PUT for upsert — auth required for PUT)
 - Public navigation data via `/api/site-navigation` (GET, no auth — returns nav items + footer config)
+- Widget CRUD via `/api/widgets` (GET list by pageId, POST create) and `/api/widgets/[id]` (GET, PUT, DELETE)
+- Widget areas via `/api/widgets/areas` (GET by pageType — returns area definitions)
+- Widget reorder via `/api/widgets/reorder` (POST — accepts ordered ID array)
+- Form submissions via `/api/widgets/form-submit` (POST, no auth — public endpoint, auto-creates FormType)
+- Page list data via `/api/widgets/page-list` (GET by path — returns child pages for Page List widget)
+- FormType CRUD via `/api/form-types` (GET list, POST create, DELETE)
+- Form submission queries via `/api/forms` (GET — groups by formTypeId or widgetId)
 
 ## Security
 - Never trust client input
@@ -239,6 +309,10 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
   - Additional page templates (one per page type, registered in page-template registry)
   - Additional icons (add to `availableIcons` array in `lib/icons.ts`)
   - Additional page type settings (extend PageTypeSettings model)
+  - Additional widgets (add definition + renderer + register in both registries + add case to WidgetItem)
+  - Additional widget prop types (extend WidgetPropType union in `lib/widgets/types.ts`)
+  - Additional container widget slots (add WidgetSlotDefinition to widget definition)
+  - Additional form element types (extend FormElementDefinition in `lib/widgets/types.ts`)
   - Workflow extensions (status is a string field)
 - No hardcoded logic blocking future growth
 
