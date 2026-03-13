@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import type { PageContent } from "@/lib/page-types";
@@ -43,6 +44,12 @@ export async function generateMetadata({ params }: CatchAllPageProps): Promise<M
   const ogTitleValue = page.ogTitle || title;
   const ogDescValue = page.ogDescription || description;
 
+  // Build absolute origin from request headers for OG image URLs
+  const headersList = await headers();
+  const host = headersList.get("x-forwarded-host") || headersList.get("host") || "localhost:3000";
+  const protocol = headersList.get("x-forwarded-proto") || "https";
+  const origin = `${protocol}://${host}`;
+
   const metadata: Metadata = {
     title,
     description,
@@ -51,7 +58,7 @@ export async function generateMetadata({ params }: CatchAllPageProps): Promise<M
       title: ogTitleValue,
       description: ogDescValue,
       url: canonical || fullPath,
-      images: page.ogImage ? [{ url: page.ogImage }] : undefined,
+      images: page.ogImage ? [{ url: `${origin}/api/storage/file/${page.ogImage}` }] : undefined,
     },
   };
 
