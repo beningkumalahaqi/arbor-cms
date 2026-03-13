@@ -85,15 +85,17 @@ model StorageFolder {
 }
 
 model SiteSettings {
-  id                String   @id @default(cuid())
-  navigationEnabled Int      @default(1)
-  navigationLogo    String   @default("")
-  navigationTitle   String   @default("Arbor CMS")
-  footerEnabled     Int      @default(1)
-  footerLogo        String   @default("")
-  footerText        String   @default("")
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                       String   @id @default(cuid())
+  navigationEnabled        Int      @default(1)
+  navigationLogo           String   @default("")
+  navigationTitle          String   @default("Arbor CMS")
+  footerEnabled            Int      @default(1)
+  footerLogo               String   @default("")
+  footerText               String   @default("")
+  environmentDatabaseUrl   String   @default("")
+  environmentDatabaseToken String   @default("")
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
 }
 
 model Widget {
