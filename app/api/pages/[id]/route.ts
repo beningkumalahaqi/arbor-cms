@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { getPageType } from "@/lib/page-types";
 import { validateProperties } from "@/lib/properties";
+import { validateSlug } from "@/lib/validation";
 
 export async function GET(
   _request: NextRequest,
@@ -23,6 +24,23 @@ export async function GET(
   return NextResponse.json({ page });
 }
 
+/** Recursively update fullPath for all descendants when a page's path changes. */
+async function updateDescendantPaths(
+  pageId: string,
+  oldBasePath: string,
+  newBasePath: string
+): Promise<void> {
+  const children = await prisma.page.findMany({ where: { parentId: pageId } });
+  for (const child of children) {
+    const newChildPath = newBasePath + child.fullPath.slice(oldBasePath.length);
+    await prisma.page.update({
+      where: { id: child.id },
+      data: { fullPath: newChildPath },
+    });
+    await updateDescendantPaths(child.id, child.fullPath, newChildPath);
+  }
+}
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -40,9 +58,77 @@ export async function PUT(
   }
 
   const body = await request.json();
-  const { content, status, showInNav, navLabel } = body;
+  const {
+    name,
+    slug,
+    content,
+    status,
+    showInNav,
+    navLabel,
+    seoTitle,
+    seoDescription,
+    seoCanonical,
+    ogTitle,
+    ogDescription,
+    ogUrl,
+    ogImage,
+  } = body;
 
   const updateData: Record<string, unknown> = {};
+
+  // Update display name
+  if (name !== undefined) {
+    updateData.name = String(name);
+  }
+
+  // Update slug (and cascade fullPath changes to all descendants)
+  if (slug !== undefined && slug !== page.slug) {
+    if (page.pageType === "home") {
+      return NextResponse.json(
+        { error: "Cannot change the slug of the home page." },
+        { status: 400 }
+      );
+    }
+    if (!validateSlug(slug)) {
+      return NextResponse.json(
+        { error: "Invalid slug. Use lowercase letters, numbers, and hyphens only." },
+        { status: 400 }
+      );
+    }
+
+    // Build new fullPath
+    let newFullPath: string;
+    if (page.parentId) {
+      const parent = await prisma.page.findUnique({ where: { id: page.parentId } });
+      if (!parent) {
+        return NextResponse.json({ error: "Parent page not found." }, { status: 400 });
+      }
+      newFullPath = parent.fullPath === "/" ? `/${slug}` : `${parent.fullPath}/${slug}`;
+    } else {
+      newFullPath = `/${slug}`;
+    }
+
+    // Check uniqueness
+    const conflicting = await prisma.page.findUnique({ where: { fullPath: newFullPath } });
+    if (conflicting && conflicting.id !== id) {
+      return NextResponse.json(
+        { error: "A page with this path already exists." },
+        { status: 409 }
+      );
+    }
+
+    const oldFullPath = page.fullPath;
+    updateData.slug = slug;
+    updateData.fullPath = newFullPath;
+
+    // Update this page first, then cascade to descendants
+    await prisma.page.update({ where: { id }, data: updateData });
+    await updateDescendantPaths(id, oldFullPath, newFullPath);
+
+    // Re-fetch and return the updated page
+    const updatedPage = await prisma.page.findUnique({ where: { id } });
+    return NextResponse.json({ page: updatedPage });
+  }
 
   // Validate and update content
   if (content) {
@@ -80,6 +166,15 @@ export async function PUT(
   if (navLabel !== undefined) {
     updateData.navLabel = String(navLabel);
   }
+
+  // Update SEO fields
+  if (seoTitle !== undefined) updateData.seoTitle = String(seoTitle);
+  if (seoDescription !== undefined) updateData.seoDescription = String(seoDescription);
+  if (seoCanonical !== undefined) updateData.seoCanonical = String(seoCanonical);
+  if (ogTitle !== undefined) updateData.ogTitle = String(ogTitle);
+  if (ogDescription !== undefined) updateData.ogDescription = String(ogDescription);
+  if (ogUrl !== undefined) updateData.ogUrl = String(ogUrl);
+  if (ogImage !== undefined) updateData.ogImage = String(ogImage);
 
   const updatedPage = await prisma.page.update({
     where: { id },

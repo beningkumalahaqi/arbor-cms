@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import type { PageContent } from "@/lib/page-types";
 import { getTemplate } from "@/lib/page-template";
@@ -17,6 +18,46 @@ function toTitleCase(slug: string): string {
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+}
+
+export async function generateMetadata({ params }: CatchAllPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const fullPath = slug ? `/${slug.join("/")}` : "/";
+
+  const [page, siteSettings] = await Promise.all([
+    prisma.page.findUnique({ where: { fullPath } }),
+    prisma.siteSettings.findFirst(),
+  ]);
+
+  if (!page || page.status !== "published") {
+    return {};
+  }
+
+  const siteTitle = siteSettings?.navigationTitle ?? "Arbor CMS";
+  const canonicalBase = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+
+  const title = page.seoTitle || page.name || toTitleCase(page.slug) || siteTitle;
+  const description = page.seoDescription || undefined;
+  const canonical = page.seoCanonical || (canonicalBase ? `${canonicalBase}${fullPath}` : undefined);
+
+  const ogTitle = page.ogTitle || title;
+  const ogDescription = page.ogDescription || description;
+  const ogUrl = page.ogUrl || canonical;
+  const ogImage = page.ogImage
+    ? [{ url: `${canonicalBase}/api/storage/file/${page.ogImage}` }]
+    : undefined;
+
+  return {
+    title,
+    description,
+    alternates: canonical ? { canonical } : undefined,
+    openGraph: {
+      title: ogTitle,
+      description: ogDescription,
+      url: ogUrl,
+      images: ogImage,
+    },
+  };
 }
 
 export default async function CatchAllPage({ params }: CatchAllPageProps) {
@@ -96,3 +137,4 @@ export default async function CatchAllPage({ params }: CatchAllPageProps) {
     </SiteLayout>
   );
 }
+

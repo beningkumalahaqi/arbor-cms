@@ -8,6 +8,7 @@ import { PageTree } from "@/components/admin/page-tree";
 
 interface PageData {
   id: string;
+  name: string;
   slug: string;
   fullPath: string;
   pageType: string;
