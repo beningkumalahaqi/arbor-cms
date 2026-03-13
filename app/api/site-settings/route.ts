@@ -14,6 +14,8 @@ export async function GET() {
         footerEnabled: 1,
         footerLogo: "",
         footerText: "",
+        environmentDatabaseUrl: "",
+        environmentDatabaseToken: "",
       },
     });
   }
@@ -35,6 +37,8 @@ export async function PUT(request: NextRequest) {
     footerEnabled,
     footerLogo,
     footerText,
+    environmentDatabaseUrl,
+    environmentDatabaseToken,
   } = body;
 
   const updateData: Record<string, unknown> = {};
@@ -57,6 +61,12 @@ export async function PUT(request: NextRequest) {
   if (footerText !== undefined) {
     updateData.footerText = String(footerText);
   }
+  if (environmentDatabaseUrl !== undefined) {
+    updateData.environmentDatabaseUrl = String(environmentDatabaseUrl);
+  }
+  if (environmentDatabaseToken !== undefined) {
+    updateData.environmentDatabaseToken = String(environmentDatabaseToken);
+  }
 
   const existing = await prisma.siteSettings.findFirst();
 
@@ -75,6 +85,8 @@ export async function PUT(request: NextRequest) {
         footerEnabled?: number;
         footerLogo?: string;
         footerText?: string;
+        environmentDatabaseUrl?: string;
+        environmentDatabaseToken?: string;
       },
     });
   }

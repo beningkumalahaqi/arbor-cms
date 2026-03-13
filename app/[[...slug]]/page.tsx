@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import type { PageContent } from "@/lib/page-types";
 import { getTemplate } from "@/lib/page-template";
@@ -17,6 +18,44 @@ function toTitleCase(slug: string): string {
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+}
+
+export async function generateMetadata({ params }: CatchAllPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const fullPath = slug ? `/${slug.join("/")}` : "/";
+
+  const page = await prisma.page.findUnique({ where: { fullPath } });
+
+  if (!page || page.status !== "published") {
+    return {};
+  }
+
+  const content: PageContent =
+    typeof page.content === "string"
+      ? JSON.parse(page.content)
+      : (page.content as PageContent);
+
+  const pageTitle = (content.title as string) || toTitleCase(page.slug);
+  const title = page.metaTitle || pageTitle;
+  const description = page.metaDescription || (content.description as string) || undefined;
+  const canonical = page.canonicalUrl || undefined;
+
+  const ogTitleValue = page.ogTitle || title;
+  const ogDescValue = page.ogDescription || description;
+
+  const metadata: Metadata = {
+    title,
+    description,
+    alternates: canonical ? { canonical } : undefined,
+    openGraph: {
+      title: ogTitleValue,
+      description: ogDescValue,
+      url: canonical || fullPath,
+      images: page.ogImage ? [{ url: page.ogImage }] : undefined,
+    },
+  };
+
+  return metadata;
 }
 
 export default async function CatchAllPage({ params }: CatchAllPageProps) {

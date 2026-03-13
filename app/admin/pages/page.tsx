@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { PageLayout } from "@/components/ui";
 import { Button } from "@/components/ui";
@@ -10,6 +10,7 @@ interface PageData {
   id: string;
   slug: string;
   fullPath: string;
+  name: string;
   pageType: string;
   status: string;
   parentId: string | null;
@@ -29,7 +30,8 @@ export default function PagesListPage() {
   >({});
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadPages = useCallback(() => {
+    setLoading(true);
     fetch("/api/pages?tree=true")
       .then((res) => res.json())
       .then((data) => {
@@ -54,6 +56,10 @@ export default function PagesListPage() {
       });
   }, []);
 
+  useEffect(() => {
+    loadPages();
+  }, [loadPages]);
+
   return (
     <PageLayout
       title="Pages"
@@ -67,7 +73,7 @@ export default function PagesListPage() {
       {loading ? (
         <p className="text-muted-foreground">Loading...</p>
       ) : (
-        <PageTree pages={pages} settings={settings} />
+        <PageTree pages={pages} settings={settings} onRefresh={loadPages} />
       )}
     </PageLayout>
   );
