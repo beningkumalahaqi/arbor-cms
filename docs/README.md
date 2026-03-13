@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="../public/Arbor.png" alt="Arbor CMS" width="120" />
-</p>
-
 # Arbor CMS — Detailed Documentation
 
 A lightweight, structured Content Management System designed for developers who want full control over their content architecture.
