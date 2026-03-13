@@ -14,12 +14,19 @@ interface PageData {
   id: string;
   slug: string;
   fullPath: string;
+  name: string;
   pageType: string;
   status: string;
   content: string;
   parentId: string | null;
   showInNav: number;
   navLabel: string;
+  metaTitle: string;
+  metaDescription: string;
+  canonicalUrl: string;
+  ogTitle: string;
+  ogDescription: string;
+  ogImage: string;
 }
 
 export default function EditPagePage() {
@@ -36,9 +43,23 @@ export default function EditPagePage() {
   const [status, setStatus] = useState("draft");
   const [showInNav, setShowInNav] = useState(false);
   const [navLabel, setNavLabel] = useState("");
+
+  // Page identity fields
+  const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
+  const [slugChanged, setSlugChanged] = useState(false);
+
+  // SEO fields
+  const [metaTitle, setMetaTitle] = useState("");
+  const [metaDescription, setMetaDescription] = useState("");
+  const [canonicalUrl, setCanonicalUrl] = useState("");
+  const [ogTitle, setOgTitle] = useState("");
+  const [ogDescription, setOgDescription] = useState("");
+  const [ogImage, setOgImage] = useState("");
+
   const [showPreview, setShowPreview] = useState(true);
   const [splitPercent, setSplitPercent] = useState(50);
-  const [activeTab, setActiveTab] = useState<"content" | "widgets">("content");
+  const [activeTab, setActiveTab] = useState<"content" | "widgets" | "seo">("content");
   const [widgetAreas, setWidgetAreas] = useState<WidgetAreaDefinition[]>([]);
   const [pageWidgets, setPageWidgets] = useState<WidgetInstance[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -81,6 +102,14 @@ export default function EditPagePage() {
           setStatus(data.page.status);
           setShowInNav(data.page.showInNav === 1);
           setNavLabel(data.page.navLabel ?? "");
+          setName(data.page.name ?? "");
+          setSlug(data.page.slug ?? "");
+          setMetaTitle(data.page.metaTitle ?? "");
+          setMetaDescription(data.page.metaDescription ?? "");
+          setCanonicalUrl(data.page.canonicalUrl ?? "");
+          setOgTitle(data.page.ogTitle ?? "");
+          setOgDescription(data.page.ogDescription ?? "");
+          setOgImage(data.page.ogImage ?? "");
           const td = getPageType(data.page.pageType);
           setTypeDef(td ?? null);
 
@@ -120,7 +149,20 @@ export default function EditPagePage() {
     const res = await fetch(`/api/pages/${pageId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content, status, showInNav, navLabel }),
+      body: JSON.stringify({
+        content,
+        status,
+        showInNav,
+        navLabel,
+        name,
+        slug: slugChanged ? slug : undefined,
+        metaTitle,
+        metaDescription,
+        canonicalUrl,
+        ogTitle,
+        ogDescription,
+        ogImage,
+      }),
     });
 
     const data = await res.json();
@@ -167,10 +209,12 @@ export default function EditPagePage() {
     );
   }
 
+  const displayTitle = name || page.slug || page.fullPath;
+
   return (
     <PageLayout
-      title={`Edit: ${page.fullPath}`}
-      description={`Type: ${page.pageType} • Slug: ${page.slug}`}
+      title={`Edit: ${displayTitle}`}
+      description={`Type: ${page.pageType} • Path: ${page.fullPath}`}
       actions={
         <div className="flex gap-2">
           <a
@@ -198,18 +242,18 @@ export default function EditPagePage() {
       <div style={showPreview ? { width: `${splitPercent}%` } : undefined} className={showPreview ? "min-w-0 shrink-0 pr-0" : ""}>
       <Card className={showPreview ? "h-[calc(100vh-10rem)] overflow-hidden flex flex-col" : "max-w-2xl"}>
         {/* Tab Header */}
-        {widgetAreas.length > 0 && (
-          <div className="flex items-center border-b bg-muted/30">
-            <button
-              onClick={() => setActiveTab("content")}
-              className={`px-4 py-2.5 text-sm font-medium transition-colors ${
-                activeTab === "content"
-                  ? "border-b-2 border-primary text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Content
-            </button>
+        <div className="flex items-center border-b bg-muted/30">
+          <button
+            onClick={() => setActiveTab("content")}
+            className={`px-4 py-2.5 text-sm font-medium transition-colors ${
+              activeTab === "content"
+                ? "border-b-2 border-primary text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Content
+          </button>
+          {widgetAreas.length > 0 && (
             <button
               onClick={() => setActiveTab("widgets")}
               className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition-colors ${
@@ -225,8 +269,18 @@ export default function EditPagePage() {
                 </Badge>
               )}
             </button>
-          </div>
-        )}
+          )}
+          <button
+            onClick={() => setActiveTab("seo")}
+            className={`px-4 py-2.5 text-sm font-medium transition-colors ${
+              activeTab === "seo"
+                ? "border-b-2 border-primary text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            SEO
+          </button>
+        </div>
 
         {/* Content Tab */}
         <div className={activeTab === "content" ? "flex-1 overflow-auto" : "hidden"}>
@@ -236,6 +290,43 @@ export default function EditPagePage() {
               {error}
             </div>
           )}
+
+          {/* Page identity */}
+          <div className="space-y-4">
+            <p className="text-sm font-medium text-foreground">Page Identity</p>
+            <FormField label="Display Name">
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={page.slug ? page.slug.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") : "Home"}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                The name shown in the admin page tree. Defaults to slug if empty.
+              </p>
+            </FormField>
+
+            {page.pageType !== "home" && (
+              <FormField label="Slug">
+                <Input
+                  value={slug}
+                  onChange={(e) => {
+                    setSlug(e.target.value);
+                    setSlugChanged(e.target.value !== page.slug);
+                  }}
+                  pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+                  placeholder="my-page"
+                />
+                {slugChanged && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    ⚠ Changing the slug will update the page URL and all child page URLs.
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">
+                  Current URL: <span className="font-mono">{page.fullPath}</span>
+                </p>
+              </FormField>
+            )}
+          </div>
 
           <FormField label="Status">
             <RadioGroup value={status} onValueChange={setStatus} className="flex gap-4">
@@ -348,6 +439,121 @@ export default function EditPagePage() {
             />
           </div>
         )}
+
+        {/* SEO Tab */}
+        <div className={activeTab === "seo" ? "flex-1 overflow-auto" : "hidden"}>
+          <form onSubmit={handleSave} className={`space-y-4 ${showPreview ? "flex-1 overflow-auto p-4" : "p-4"}`}>
+            {error && (
+              <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                {error}
+              </div>
+            )}
+
+            {/* Basic SEO */}
+            <div className="space-y-4">
+              <p className="text-sm font-medium text-foreground">Basic SEO</p>
+              <p className="text-xs text-muted-foreground -mt-2">
+                These fields control how search engines index this page.
+              </p>
+
+              <FormField label="Meta Title">
+                <Input
+                  value={metaTitle}
+                  onChange={(e) => setMetaTitle(e.target.value)}
+                  placeholder={content.title || page.slug}
+                  maxLength={60}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Recommended: 50–60 characters. Leave empty to use the page title.
+                  {metaTitle && <span className="ml-2 font-mono">{metaTitle.length}/60</span>}
+                </p>
+              </FormField>
+
+              <FormField label="Meta Description">
+                <textarea
+                  value={metaDescription}
+                  onChange={(e) => setMetaDescription(e.target.value)}
+                  placeholder="A brief description of this page for search engine results..."
+                  maxLength={160}
+                  rows={3}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Recommended: 150–160 characters.
+                  {metaDescription && <span className="ml-2 font-mono">{metaDescription.length}/160</span>}
+                </p>
+              </FormField>
+
+              <FormField label="Canonical URL">
+                <Input
+                  value={canonicalUrl}
+                  onChange={(e) => setCanonicalUrl(e.target.value)}
+                  placeholder={`https://example.com${page.fullPath}`}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Leave empty to use the default page URL.
+                </p>
+              </FormField>
+            </div>
+
+            {/* Open Graph */}
+            <div className="space-y-4 border-t pt-4">
+              <p className="text-sm font-medium text-foreground">Open Graph</p>
+              <p className="text-xs text-muted-foreground -mt-2">
+                Controls how this page appears when shared on social media. Falls back to Basic SEO values if empty.
+              </p>
+
+              <FormField label="OG Title">
+                <Input
+                  value={ogTitle}
+                  onChange={(e) => setOgTitle(e.target.value)}
+                  placeholder={metaTitle || content.title || page.slug}
+                  maxLength={95}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Defaults to Meta Title if empty.
+                </p>
+              </FormField>
+
+              <FormField label="OG Description">
+                <textarea
+                  value={ogDescription}
+                  onChange={(e) => setOgDescription(e.target.value)}
+                  placeholder={metaDescription || "A brief description for social sharing..."}
+                  maxLength={200}
+                  rows={3}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Defaults to Meta Description if empty.
+                </p>
+              </FormField>
+
+              <FormField label="OG Image">
+                <ImageField
+                  value={ogImage}
+                  onChange={(val) => setOgImage(val)}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Recommended size: 1200 × 630px. Shown when the page is shared on social media.
+                </p>
+              </FormField>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Button type="submit" disabled={submitting}>
+                {submitting ? "Saving..." : "Save Changes"}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => router.push("/admin/pages")}
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </div>
 
       </Card>
       </div>
