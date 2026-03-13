@@ -16,7 +16,18 @@ export interface SyncResult {
   };
 }
 
+function validateUrl(url: string): void {
+  if (!url || typeof url !== "string") {
+    throw new Error("Database URL is required");
+  }
+  const allowed = url.startsWith("libsql://") || url.startsWith("file:") || url.startsWith("https://");
+  if (!allowed) {
+    throw new Error("Database URL must start with libsql://, https://, or file:");
+  }
+}
+
 function createTargetClient(url: string, authToken?: string): PrismaClient {
+  validateUrl(url);
   const adapter = new PrismaLibSql({
     url,
     authToken: authToken || undefined,
@@ -216,8 +227,9 @@ async function syncToTarget(
             data: fs.data,
           },
         });
-      } catch {
-        // Skip submissions that fail due to referential integrity
+      } catch (err) {
+        // Log but skip submissions that fail (e.g., referential integrity)
+        console.error("Skipping form submission sync:", (err instanceof Error ? err.message : err));
       }
     }
 
@@ -456,8 +468,9 @@ async function syncFromTarget(
             data: submission.data,
           },
         });
-      } catch {
-        // Skip submissions that fail due to referential integrity
+      } catch (err) {
+        // Log but skip submissions that fail (e.g., referential integrity)
+        console.error("Skipping form submission sync:", (err instanceof Error ? err.message : err));
       }
     }
 

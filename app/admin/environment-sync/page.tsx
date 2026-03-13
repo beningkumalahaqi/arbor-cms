@@ -111,10 +111,12 @@ export default function EnvironmentSyncPage() {
       const result: SyncResult = await res.json();
       setSyncResult(result);
       await fetchStatus();
-    } catch {
+    } catch (err) {
       setSyncResult({
         success: false,
-        message: "An unexpected error occurred during sync.",
+        message: err instanceof Error
+          ? `Sync failed: ${err.message}`
+          : "An unexpected error occurred during sync.",
       });
     }
     setSyncing(false);
