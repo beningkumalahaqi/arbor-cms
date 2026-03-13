@@ -32,12 +32,13 @@ async function updateDescendantPaths(
 ): Promise<void> {
   const children = await prisma.page.findMany({ where: { parentId: pageId } });
   for (const child of children) {
-    const newChildPath = newBasePath + child.fullPath.slice(oldBasePath.length);
+    const oldChildPath = child.fullPath;
+    const newChildPath = newBasePath + oldChildPath.slice(oldBasePath.length);
     await prisma.page.update({
       where: { id: child.id },
       data: { fullPath: newChildPath },
     });
-    await updateDescendantPaths(child.id, child.fullPath, newChildPath);
+    await updateDescendantPaths(child.id, oldChildPath, newChildPath);
   }
 }
 
@@ -82,6 +83,9 @@ export async function PUT(
   }
 
   // Update slug (and cascade fullPath changes to all descendants)
+  let oldFullPath: string | null = null;
+  let newFullPath: string | null = null;
+
   if (slug !== undefined && slug !== page.slug) {
     if (page.pageType === "home") {
       return NextResponse.json(
@@ -97,7 +101,6 @@ export async function PUT(
     }
 
     // Build new fullPath
-    let newFullPath: string;
     if (page.parentId) {
       const parent = await prisma.page.findUnique({ where: { id: page.parentId } });
       if (!parent) {
@@ -117,17 +120,9 @@ export async function PUT(
       );
     }
 
-    const oldFullPath = page.fullPath;
+    oldFullPath = page.fullPath;
     updateData.slug = slug;
     updateData.fullPath = newFullPath;
-
-    // Update this page first, then cascade to descendants
-    await prisma.page.update({ where: { id }, data: updateData });
-    await updateDescendantPaths(id, oldFullPath, newFullPath);
-
-    // Re-fetch and return the updated page
-    const updatedPage = await prisma.page.findUnique({ where: { id } });
-    return NextResponse.json({ page: updatedPage });
   }
 
   // Validate and update content
@@ -180,6 +175,11 @@ export async function PUT(
     where: { id },
     data: updateData,
   });
+
+  // Cascade fullPath updates to descendants if slug changed
+  if (oldFullPath && newFullPath) {
+    await updateDescendantPaths(id, oldFullPath, newFullPath);
+  }
 
   return NextResponse.json({ page: updatedPage });
 }

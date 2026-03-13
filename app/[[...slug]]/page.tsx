@@ -43,9 +43,10 @@ export async function generateMetadata({ params }: CatchAllPageProps): Promise<M
   const ogTitle = page.ogTitle || title;
   const ogDescription = page.ogDescription || description;
   const ogUrl = page.ogUrl || canonical;
-  const ogImage = page.ogImage
-    ? [{ url: `${canonicalBase}/api/storage/file/${page.ogImage}` }]
-    : undefined;
+  const ogImage =
+    page.ogImage && canonicalBase
+      ? [{ url: `${canonicalBase}/api/storage/file/${page.ogImage}` }]
+      : undefined;
 
   return {
     title,

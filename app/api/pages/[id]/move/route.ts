@@ -10,12 +10,13 @@ async function updateDescendantPaths(
 ): Promise<void> {
   const children = await prisma.page.findMany({ where: { parentId: pageId } });
   for (const child of children) {
-    const newChildPath = newBasePath + child.fullPath.slice(oldBasePath.length);
+    const oldChildPath = child.fullPath;
+    const newChildPath = newBasePath + oldChildPath.slice(oldBasePath.length);
     await prisma.page.update({
       where: { id: child.id },
       data: { fullPath: newChildPath },
     });
-    await updateDescendantPaths(child.id, child.fullPath, newChildPath);
+    await updateDescendantPaths(child.id, oldChildPath, newChildPath);
   }
 }
 
@@ -74,7 +75,12 @@ export async function POST(
       where: { pageTypeName: newParent.pageType },
     });
     if (parentSettings) {
-      const allowed: string[] = JSON.parse(parentSettings.allowedChildren);
+      let allowed: string[] = [];
+      try {
+        allowed = JSON.parse(parentSettings.allowedChildren);
+      } catch {
+        allowed = [];
+      }
       if (allowed.length > 0 && !allowed.includes(page.pageType)) {
         return NextResponse.json(
           {

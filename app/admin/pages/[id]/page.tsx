@@ -147,29 +147,12 @@ export default function EditPagePage() {
     setError("");
     setSubmitting(true);
 
-    // If slug changed, update it first (separate request that rebuilds fullPath)
-    if (slugChanged && page && pageSlug !== page.slug) {
-      const slugRes = await fetch(`/api/pages/${pageId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug: pageSlug }),
-      });
-      const slugData = await slugRes.json();
-      if (!slugRes.ok) {
-        setError(slugData.error);
-        setSubmitting(false);
-        return;
-      }
-      // Update local page state with new fullPath/slug
-      setPage((prev) => prev ? { ...prev, slug: slugData.page.slug, fullPath: slugData.page.fullPath } : prev);
-      setSlugChanged(false);
-    }
-
     const res = await fetch(`/api/pages/${pageId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: pageName,
+        slug: slugChanged ? pageSlug : undefined,
         content,
         status,
         showInNav,
