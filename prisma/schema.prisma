@@ -23,18 +23,25 @@ model User {
 }
 
 model Page {
-  id        String   @id @default(cuid())
-  parentId  String?
-  slug      String
-  fullPath  String   @unique
-  pageType  String
-  status    String   @default("draft")
-  content   String   @default("{}")
-  sortOrder Int      @default(0)
-  showInNav Int      @default(0)
-  navLabel  String   @default("")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String   @id @default(cuid())
+  parentId        String?
+  slug            String
+  fullPath        String   @unique
+  name            String   @default("")
+  pageType        String
+  status          String   @default("draft")
+  content         String   @default("{}")
+  sortOrder       Int      @default(0)
+  showInNav       Int      @default(0)
+  navLabel        String   @default("")
+  metaTitle       String   @default("")
+  metaDescription String   @default("")
+  canonicalUrl    String   @default("")
+  ogTitle         String   @default("")
+  ogDescription   String   @default("")
+  ogImage         String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   parent   Page?    @relation("PageTree", fields: [parentId], references: [id])
   children Page[]   @relation("PageTree")
