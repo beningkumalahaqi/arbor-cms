@@ -52,6 +52,7 @@ export {
   TooltipProvider,
   TooltipTrigger,
 } from "./tooltip";
+export { Switch } from "./switch";
 export { FormField } from "./form-field";
 export { PageLayout } from "./page-layout";
 export { PageTypeIcon } from "./page-type-icon";

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { PageLayout, Card, Button, Input, FormField, RadioGroup, RadioGroupItem, Label, Badge } from "@/components/ui";
+import { PageLayout, Card, Button, Input, FormField, Switch, Label, Badge } from "@/components/ui";
 import { ImageField } from "@/components/admin/image-field";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { PagePreview } from "@/components/admin/page-preview";
@@ -329,16 +329,16 @@ export default function EditPagePage() {
           </div>
 
           <FormField label="Status">
-            <RadioGroup value={status} onValueChange={setStatus} className="flex gap-4">
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="draft" id="status-draft" />
-                <Label htmlFor="status-draft">Draft</Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="published" id="status-published" />
-                <Label htmlFor="status-published">Published</Label>
-              </div>
-            </RadioGroup>
+            <div className="flex items-center gap-3">
+              <Switch
+                id="status-switch"
+                checked={status === "published"}
+                onCheckedChange={(checked) => setStatus(checked ? "published" : "draft")}
+              />
+              <Label htmlFor="status-switch">
+                {status === "published" ? "Published" : "Draft"}
+              </Label>
+            </div>
           </FormField>
 
           {!page.parentId && (
