@@ -88,6 +88,9 @@ Section and Columns are special container widgets that wrap other widgets inside
 ### Form System
 The Form widget lets admins create custom forms with configurable fields (text, email, textarea, select, checkbox, radio). Form definitions are stored independently as **Form Types**, which survive even if the original widget is deleted. When creating a Form widget, admins can reuse an existing Form Type or create a new one. Submissions are viewable in a dedicated admin section at `/admin/forms`, grouped by Form Type.
 
+### Environment Sync
+Arbor CMS includes a built-in Environment Sync feature that allows administrators to synchronize all CMS content between two database environments. This is used for migrating content between staging and production, transferring data to new deployments, or creating database backups. The sync transfers pages, widgets, page type settings, form types, form submissions, storage files, and site settings using safe upsert-by-ID operations. Target database credentials are configured in **Settings > Environment Sync**, and sync operations are managed from a dedicated admin page at `/admin/environment-sync`.
+
 ---
 
 ## Project Structure
@@ -97,11 +100,15 @@ app/              → Pages and API routes (Next.js App Router)
   admin/          → Admin UI (protected)
     files/        → File manager page
     forms/        → Form submissions admin pages
+    environment-sync/ → Environment sync admin page
+    settings/
+      environment-sync/ → Environment sync settings page
   api/            → REST endpoints for mutations
     storage/      → File management API
     widgets/      → Widget CRUD, areas, reorder, form-submit, page-list
     form-types/   → FormType CRUD API
     forms/        → Form submission queries
+    environment-sync/ → Sync trigger and status API
   [[...slug]]/    → Catch-all public page routing
 components/
   ui/             → Shared UI components (shadcn/ui-based: Button, Input, Card, Badge, Dialog, etc.)
@@ -114,6 +121,7 @@ lib/
   page-template/  → Page Template components and registry
   properties/     → Property validation and defaults
   widgets/        → Widget system (types, registry, renderer, definitions, renderers)
+  sync/           → Environment sync service (testConnection, syncToTarget, syncFromTarget)
   icons.ts        → Curated SVG icon set for page types
   utils.ts        → Utility functions (cn class merger for shadcn/ui)
   storage/        → Database-backed file storage (types, DB operations, index)
@@ -131,11 +139,14 @@ guide/            → Developer guides for extending the CMS
 - [How to Create a New Widget](../guide/how-to-create-a-new-widget.md)
 - [How to Create a Form](../guide/how-to-create-a-form.md)
 - [How Forms Work](../guide/how-forms-work.md)
+- [How Environment Sync Works](../guide/how-environment-sync-works.md)
+- [How to Use Environment Sync](../guide/how-to-use-environment-sync.md)
 
 ---
 
 ## Release Notes
 
+- [v2.1.0](v2.1.0-update.md)
 - [v2.0.0](v2.0.0-update.md)
 - [v1.5.0](v1.5.0-update.md)
 - [v1.4.0](v1.4.0-update.md)
