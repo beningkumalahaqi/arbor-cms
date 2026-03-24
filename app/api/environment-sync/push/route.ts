@@ -4,7 +4,7 @@ import { syncService, type SyncPayload } from "@/lib/sync/service";
 import { validateEnvironmentSyncToken } from "@/app/api/environment-sync/auth";
 
 export async function POST(request: NextRequest) {
-  const tokenValidation = validateEnvironmentSyncToken(request);
+  const tokenValidation = await validateEnvironmentSyncToken(request);
   if (!tokenValidation.valid) {
     return NextResponse.json({ error: tokenValidation.error }, { status: 401 });
   }

@@ -11,24 +11,26 @@ export async function GET() {
   const settings = await prisma.siteSettings.findFirst();
 
   if (!settings) {
-    return NextResponse.json({
-      settings: {
-        navigationEnabled: 1,
-        navigationLogo: "",
-        navigationTitle: "Arbor CMS",
-        footerEnabled: 1,
-        footerLogo: "",
-        footerText: "",
-        environmentDatabaseUrl: "",
-        environmentDatabaseToken: "",
-      },
-    });
+      return NextResponse.json({
+        settings: {
+          navigationEnabled: 1,
+          navigationLogo: "",
+          navigationTitle: "Arbor CMS",
+          footerEnabled: 1,
+          footerLogo: "",
+          footerText: "",
+          environmentDatabaseUrl: "",
+          environmentDatabaseToken: "",
+          environmentSyncTokenConfigured: false,
+        },
+      });
   }
 
   return NextResponse.json({
     settings: {
       ...settings,
       environmentDatabaseToken: "",
+      environmentSyncTokenConfigured: Boolean(settings.environmentSyncToken),
     },
   });
 }

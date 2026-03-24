@@ -6,7 +6,7 @@ import { hasBearerToken, validateEnvironmentSyncToken } from "@/app/api/environm
 
 export async function GET(request: NextRequest) {
   if (hasBearerToken(request)) {
-    const tokenValidation = validateEnvironmentSyncToken(request);
+    const tokenValidation = await validateEnvironmentSyncToken(request);
     if (!tokenValidation.valid) {
       return NextResponse.json(
         { connected: false, error: tokenValidation.error },
