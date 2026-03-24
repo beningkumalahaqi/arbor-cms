@@ -9,16 +9,20 @@ import { Button } from "@/components/ui";
 interface EnvironmentSyncSettings {
   environmentDatabaseUrl: string;
   environmentDatabaseToken: string;
+  environmentSyncTokenConfigured: boolean;
 }
 
 export default function EnvironmentSyncSettingsPage() {
   const [settings, setSettings] = useState<EnvironmentSyncSettings>({
     environmentDatabaseUrl: "",
     environmentDatabaseToken: "",
+    environmentSyncTokenConfigured: false,
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [generatingToken, setGeneratingToken] = useState(false);
+  const [generatedToken, setGeneratedToken] = useState("");
 
   useEffect(() => {
     fetch("/api/site-settings")
@@ -28,6 +32,9 @@ export default function EnvironmentSyncSettingsPage() {
           setSettings({
             environmentDatabaseUrl: data.settings.environmentDatabaseUrl || "",
             environmentDatabaseToken: data.settings.environmentDatabaseToken || "",
+            environmentSyncTokenConfigured: Boolean(
+              data.settings.environmentSyncTokenConfigured
+            ),
           });
         }
         setLoaded(true);
@@ -53,6 +60,27 @@ export default function EnvironmentSyncSettingsPage() {
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   }, [settings]);
+
+  const handleGenerateToken = useCallback(async () => {
+    setGeneratingToken(true);
+    setSaved(false);
+    try {
+      const response = await fetch("/api/environment-sync/token", {
+        method: "POST",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || "Failed to generate token.");
+      }
+      setGeneratedToken(data.token || "");
+      setSettings((current) => ({
+        ...current,
+        environmentSyncTokenConfigured: true,
+      }));
+    } finally {
+      setGeneratingToken(false);
+    }
+  }, []);
 
   return (
     <PageLayout
@@ -106,8 +134,48 @@ export default function EnvironmentSyncSettingsPage() {
                   placeholder="Enter target environment sync token"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Bearer token sent to the target environment API (must match ENV_SYNC_TOKEN on the target). Leave blank to keep existing token.
+                  Bearer token sent to the target environment API. Copy the token from the target environment settings page and leave this blank to keep the existing value.
                 </p>
+              </div>
+
+              <div className="space-y-2 rounded-md border p-4">
+                <label className="text-sm font-medium text-foreground">
+                  This Environment API Token
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  This token secures this environment&apos;s `/api/environment-sync/*` endpoints.
+                </p>
+                {settings.environmentSyncTokenConfigured ? (
+                  <p className="text-xs text-muted-foreground">
+                    Current token: ••••••••••••••••••••••••••••••••
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    No token generated yet.
+                  </p>
+                )}
+                {generatedToken && (
+                  <div className="space-y-2">
+                    <Input type="text" readOnly value={generatedToken} />
+                    <p className="text-xs text-muted-foreground">
+                      Copy this token now. For security, it is only shown immediately after generation.
+                    </p>
+                  </div>
+                )}
+                <div className="flex items-center gap-3">
+                  <Button
+                    type="button"
+                    variant={settings.environmentSyncTokenConfigured ? "outline" : "default"}
+                    onClick={handleGenerateToken}
+                    disabled={generatingToken}
+                  >
+                    {generatingToken
+                      ? "Generating..."
+                      : settings.environmentSyncTokenConfigured
+                        ? "Regenerate Token"
+                        : "Generate Token"}
+                  </Button>
+                </div>
               </div>
 
               <div className="flex items-center gap-3">
