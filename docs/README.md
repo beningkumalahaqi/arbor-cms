@@ -89,7 +89,7 @@ Section and Columns are special container widgets that wrap other widgets inside
 The Form widget lets admins create custom forms with configurable fields (text, email, textarea, select, checkbox, radio). Form definitions are stored independently as **Form Types**, which survive even if the original widget is deleted. When creating a Form widget, admins can reuse an existing Form Type or create a new one. Submissions are viewable in a dedicated admin section at `/admin/forms`, grouped by Form Type.
 
 ### Environment Sync
-Arbor CMS includes a built-in Environment Sync feature that allows administrators to synchronize all CMS content between two database environments. This is used for migrating content between staging and production, transferring data to new deployments, or creating database backups. The sync transfers pages, widgets, page type settings, form types, form submissions, storage files, and site settings using safe upsert-by-ID operations. Target database credentials are configured in **Settings > Environment Sync**, and sync operations are managed from a dedicated admin page at `/admin/environment-sync`.
+Arbor CMS includes a built-in Environment Sync feature that allows administrators to synchronize CMS content between environments using secure API-to-API communication. This is used for migrating content between staging and production, transferring data to new deployments, or creating environment backups. The sync transfers pages, widgets, page type settings, form types, form submissions, storage files, and site settings using safe upsert-by-ID operations. Target environment API URL and token are configured in **Settings > Environment Sync**, and sync operations are managed from a dedicated admin page at `/admin/environment-sync`.
 
 ---
 
@@ -108,7 +108,7 @@ app/              → Pages and API routes (Next.js App Router)
     widgets/      → Widget CRUD, areas, reorder, form-submit, page-list
     form-types/   → FormType CRUD API
     forms/        → Form submission queries
-    environment-sync/ → Sync trigger and status API
+    environment-sync/ → Sync trigger, status, pull, and push API
   [[...slug]]/    → Catch-all public page routing
 components/
   ui/             → Shared UI components (shadcn/ui-based: Button, Input, Card, Badge, Dialog, etc.)
@@ -146,6 +146,7 @@ guide/            → Developer guides for extending the CMS
 
 ## Release Notes
 
+- [v2.2.0-update](v2.2.0-update.md) — Environment Sync API token generation moved to target environment settings; transport auth now validates against DB-stored token
 - [v2.1.0](v2.1.0-update.md)
 - [v2.0.0](v2.0.0-update.md)
 - [v1.5.0](v1.5.0-update.md)

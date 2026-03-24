@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   const settings = await prisma.siteSettings.findFirst();
   if (!settings?.environmentDatabaseUrl) {
     return NextResponse.json(
-      { error: "Target environment database URL is not configured." },
+      { error: "Target environment API URL is not configured." },
       { status: 400 }
     );
   }
@@ -30,12 +30,10 @@ export async function POST(request: NextRequest) {
   const targetUrl = settings.environmentDatabaseUrl;
   const targetToken = settings.environmentDatabaseToken || undefined;
 
-  let result;
-  if (direction === "to") {
-    result = await syncService.syncToTarget(prisma, targetUrl, targetToken);
-  } else {
-    result = await syncService.syncFromTarget(prisma, targetUrl, targetToken);
-  }
+  const result =
+    direction === "to"
+      ? await syncService.syncToTarget(prisma, targetUrl, targetToken)
+      : await syncService.syncFromTarget(prisma, targetUrl, targetToken);
 
   return NextResponse.json(result, {
     status: result.success ? 200 : 500,

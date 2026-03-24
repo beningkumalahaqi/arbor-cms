@@ -125,7 +125,7 @@ export default function EnvironmentSyncPage() {
   return (
     <PageLayout
       title="Environment Sync"
-      description="Synchronize content between the current and target environment databases."
+      description="Synchronize content between the current and target environment APIs."
     >
       <div className="max-w-3xl space-y-6">
         {/* Status Cards */}
@@ -138,7 +138,7 @@ export default function EnvironmentSyncPage() {
                 Current Environment
               </CardTitle>
               <CardDescription>
-                The database this CMS instance is connected to
+                The local database used by this CMS instance
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -173,7 +173,7 @@ export default function EnvironmentSyncPage() {
                 Target Environment
               </CardTitle>
               <CardDescription>
-                The remote database configured for synchronization
+                The remote API configured for synchronization
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -188,7 +188,7 @@ export default function EnvironmentSyncPage() {
                     </Badge>
                   </div>
                   <div>
-                    <span className="text-sm font-medium">Database URL:</span>
+                    <span className="text-sm font-medium">API URL:</span>
                     <p className="text-sm text-muted-foreground break-all">
                       {maskUrl(target.url)}
                     </p>
