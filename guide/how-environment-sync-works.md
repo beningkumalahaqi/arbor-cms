@@ -93,14 +93,14 @@ This order preserves relationships and avoids duplicates.
 Environment-to-environment sync transport uses token auth:
 
 - Header: `Authorization: Bearer <token>`
-- Token source: `ENV_SYNC_TOKEN` (on receiving environment)
+- Token source: `SiteSettings.environmentSyncToken` (on receiving environment, generated from `/admin/settings/environment-sync`)
 
 ### Protected endpoints
 
 | Method | Endpoint | Auth |
 |--------|----------|------|
-| `GET` | `/api/environment-sync/pull` | Bearer token (`ENV_SYNC_TOKEN`) |
-| `POST` | `/api/environment-sync/push` | Bearer token (`ENV_SYNC_TOKEN`) |
+| `GET` | `/api/environment-sync/pull` | Bearer token (`environmentSyncToken`) |
+| `POST` | `/api/environment-sync/push` | Bearer token (`environmentSyncToken`) |
 | `GET` | `/api/environment-sync/status` | Bearer token (remote check) or admin session (UI status page) |
 
 Invalid or missing token returns `401`.

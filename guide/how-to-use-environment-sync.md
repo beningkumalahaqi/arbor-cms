@@ -28,7 +28,7 @@ Before syncing:
    - `GET /api/environment-sync/pull`
    - `POST /api/environment-sync/push`
    - `GET /api/environment-sync/status`
-3. Set `ENV_SYNC_TOKEN` on each environment
+3. Generate an environment sync token on each receiving environment at `/admin/settings/environment-sync`
 
 ---
 
@@ -43,7 +43,7 @@ Fill in:
 - **Target Environment API URL**
   - Example: `https://target.example.com`
 - **Target Environment API Token**
-  - Must match `ENV_SYNC_TOKEN` on the target environment
+  - Must match the token generated on the target environment
 
 Click **Save**.
 
@@ -61,7 +61,7 @@ Click **Save**.
 - Connected if the target status endpoint responds and token is valid
 - Disconnected if not configured, token is invalid, or endpoint is unreachable
 
-If disconnected, verify API URL/token in settings and verify `ENV_SYNC_TOKEN` on target.
+If disconnected, verify API URL/token in settings and regenerate token on target if needed.
 
 ---
 
@@ -128,7 +128,7 @@ Result card shows:
 ### Target shows disconnected
 
 - Verify target API URL is correct and reachable
-- Verify target token matches `ENV_SYNC_TOKEN`
+- Verify target token matches the current token generated in the target environment settings
 - Verify target environment has latest code/routes
 
 ### Sync fails
