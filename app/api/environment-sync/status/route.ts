@@ -1,9 +1,22 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { syncService } from "@/lib/sync/service";
+import { hasBearerToken, validateEnvironmentSyncToken } from "@/app/api/environment-sync/auth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (hasBearerToken(request)) {
+    const tokenValidation = validateEnvironmentSyncToken(request);
+    if (!tokenValidation.valid) {
+      return NextResponse.json(
+        { connected: false, error: tokenValidation.error },
+        { status: 401 }
+      );
+    }
+
+    return NextResponse.json({ connected: true });
+  }
+
   const session = await getSession();
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -32,10 +45,7 @@ export async function GET() {
 
   const targetUrl = settings.environmentDatabaseUrl;
   const targetToken = settings.environmentDatabaseToken || undefined;
-  const connectionTest = await syncService.testConnection(
-    targetUrl,
-    targetToken
-  );
+  const connectionTest = await syncService.testConnection(targetUrl, targetToken);
 
   return NextResponse.json({
     current,

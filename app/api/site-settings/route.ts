@@ -3,6 +3,11 @@ import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 
 export async function GET() {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const settings = await prisma.siteSettings.findFirst();
 
   if (!settings) {
@@ -20,7 +25,12 @@ export async function GET() {
     });
   }
 
-  return NextResponse.json({ settings });
+  return NextResponse.json({
+    settings: {
+      ...settings,
+      environmentDatabaseToken: "",
+    },
+  });
 }
 
 export async function PUT(request: NextRequest) {

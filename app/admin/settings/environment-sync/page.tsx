@@ -37,13 +37,17 @@ export default function EnvironmentSyncSettingsPage() {
   const handleSave = useCallback(async () => {
     setSaving(true);
     setSaved(false);
+    const payload: Record<string, string> = {
+      environmentDatabaseUrl: settings.environmentDatabaseUrl,
+    };
+    if (settings.environmentDatabaseToken.trim()) {
+      payload.environmentDatabaseToken = settings.environmentDatabaseToken;
+    }
+
     await fetch("/api/site-settings", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        environmentDatabaseUrl: settings.environmentDatabaseUrl,
-        environmentDatabaseToken: settings.environmentDatabaseToken,
-      }),
+      body: JSON.stringify(payload),
     });
     setSaving(false);
     setSaved(true);
@@ -53,22 +57,22 @@ export default function EnvironmentSyncSettingsPage() {
   return (
     <PageLayout
       title="Environment Sync Settings"
-      description="Configure a target environment database to enable content synchronization between environments."
+      description="Configure a target environment API to enable secure content synchronization between environments."
     >
       <div className="max-w-2xl space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Target Environment Database</CardTitle>
+            <CardTitle>Target Environment API</CardTitle>
             <CardDescription>
-              Provide the database connection details for the target environment.
-              This is the database that content will be synced to or from.
+              Provide the API connection details for the target environment.
+              This API receives push sync requests and serves pull sync data.
             </CardDescription>
           </CardHeader>
           {loaded && (
             <div className="space-y-5 px-6 pb-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
-                  Environment Database URL
+                  Target Environment API URL
                 </label>
                 <Input
                   type="text"
@@ -79,16 +83,16 @@ export default function EnvironmentSyncSettingsPage() {
                       environmentDatabaseUrl: e.target.value,
                     })
                   }
-                  placeholder="libsql://your-database-url.turso.io"
+                  placeholder="https://target.example.com"
                 />
                 <p className="text-xs text-muted-foreground">
-                  The URL of the target environment database (e.g., a LibSQL or Turso URL)
+                  The base URL of the target Arbor CMS environment (must include http:// or https://)
                 </p>
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
-                  Environment Database Token
+                  Target Environment API Token
                 </label>
                 <Input
                   type="password"
@@ -99,10 +103,10 @@ export default function EnvironmentSyncSettingsPage() {
                       environmentDatabaseToken: e.target.value,
                     })
                   }
-                  placeholder="Enter database authentication token"
+                  placeholder="Enter target environment sync token"
                 />
                 <p className="text-xs text-muted-foreground">
-                  The authentication token for the target database (leave empty if not required)
+                  Bearer token sent to the target environment API (must match ENV_SYNC_TOKEN on the target). Leave blank to keep existing token.
                 </p>
               </div>
 

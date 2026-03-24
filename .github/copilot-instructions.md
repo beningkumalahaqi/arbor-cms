@@ -281,7 +281,9 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - Page type settings managed via `/api/page-types/settings` (GET for list, PUT for upsert)
 - File management via `/api/storage` (GET list, POST create/upload/rename/move, DELETE) — all backed by database
 - File serving via `/api/storage/file/[...path]` (GET with caching headers, reads from database)
-- Site settings via `/api/site-settings` (GET for read, PUT for upsert — auth required for PUT)
+- Site settings via `/api/site-settings` (GET for read, PUT for upsert — auth required for both)
+- Environment sync trigger/status via `/api/environment-sync` and `/api/environment-sync/status` (admin session auth)
+- Environment sync transport endpoints via `/api/environment-sync/pull` and `/api/environment-sync/push` (Bearer token auth with `ENV_SYNC_TOKEN`)
 - Public navigation data via `/api/site-navigation` (GET, no auth — returns nav items + footer config)
 - Widget CRUD via `/api/widgets` (GET list by pageId, POST create) and `/api/widgets/[id]` (GET, PUT, DELETE)
 - Widget areas via `/api/widgets/areas` (GET by pageType — returns area definitions)
