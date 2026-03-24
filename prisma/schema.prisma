@@ -94,6 +94,7 @@ model SiteSettings {
   footerText               String   @default("")
   environmentDatabaseUrl   String   @default("")
   environmentDatabaseToken String   @default("")
+  environmentSyncToken     String   @default("")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }
