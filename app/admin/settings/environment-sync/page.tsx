@@ -156,7 +156,12 @@ export default function EnvironmentSyncSettingsPage() {
                 )}
                 {generatedToken && (
                   <div className="space-y-2">
-                    <Input type="text" readOnly value={generatedToken} />
+                    <Input
+                      type="text"
+                      readOnly
+                      value={generatedToken}
+                      aria-label="Generated environment sync token"
+                    />
                     <p className="text-xs text-muted-foreground">
                       Copy this token now. For security, it is only shown immediately after generation.
                     </p>

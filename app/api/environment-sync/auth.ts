@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import { prisma } from "@/lib/db";
 
 function getBearerToken(request: NextRequest): string | null {
@@ -32,7 +33,14 @@ export async function validateEnvironmentSyncToken(
   }
 
   const token = getBearerToken(request);
-  if (!token || token !== expectedToken) {
+  if (!token) {
+    return { valid: false, error: "Invalid or missing environment sync token." };
+  }
+
+  const expected = Buffer.from(expectedToken);
+  const provided = Buffer.from(token);
+  const matches = expected.length === provided.length && timingSafeEqual(expected, provided);
+  if (!matches) {
     return { valid: false, error: "Invalid or missing environment sync token." };
   }
 
