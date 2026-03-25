@@ -233,10 +233,11 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 
 ## Settings
 - Settings page at `/admin/settings` — extensible for future settings sections
-- Grouped sections: **Appearance** and **General Settings**
-- **Appearance** contains: Theme and Layout
-- **Layout section** controls dashboard quick access cards: visibility (show/hide) and pinned/favorite state
-- **General Settings** contains: Navigation, Footer, Environment Sync
+- Settings index links to dedicated setting pages
+- `/admin/settings/theme`: Theme preferences for CMS admin and live site
+- `/admin/settings/quick-access`: Dashboard quick access module visibility and pinned/favorite state
+- `/admin/settings/navigation-footer`: Public site navigation and footer settings
+- `/admin/settings/environment-sync`: Target environment and sync token settings
 - **Navigation section**: Enable/disable toggle, site title input, logo image selector (from file manager)
 - **Footer section**: Enable/disable toggle, footer text input, logo image selector (from file manager)
 - Settings navigation entry is in the admin sidebar shell

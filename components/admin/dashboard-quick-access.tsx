@@ -119,7 +119,7 @@ export function DashboardQuickAccess({ initialModules }: DashboardQuickAccessPro
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">
-              No dashboard modules selected. Enable modules in Settings &gt; Appearance &gt; Dashboard Layout.
+              No dashboard modules selected. Enable modules in Settings &gt; Quick Access.
             </p>
           </CardContent>
         </Card>
