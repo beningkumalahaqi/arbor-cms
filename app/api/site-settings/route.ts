@@ -3,24 +3,36 @@ import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 
 export async function GET() {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const settings = await prisma.siteSettings.findFirst();
 
   if (!settings) {
-    return NextResponse.json({
-      settings: {
-        navigationEnabled: 1,
-        navigationLogo: "",
-        navigationTitle: "Arbor CMS",
-        footerEnabled: 1,
-        footerLogo: "",
-        footerText: "",
-        environmentDatabaseUrl: "",
-        environmentDatabaseToken: "",
-      },
-    });
+      return NextResponse.json({
+        settings: {
+          navigationEnabled: 1,
+          navigationLogo: "",
+          navigationTitle: "Arbor CMS",
+          footerEnabled: 1,
+          footerLogo: "",
+          footerText: "",
+          environmentDatabaseUrl: "",
+          environmentDatabaseToken: "",
+          environmentSyncTokenConfigured: false,
+        },
+      });
   }
 
-  return NextResponse.json({ settings });
+  return NextResponse.json({
+    settings: {
+      ...settings,
+      environmentDatabaseToken: "",
+      environmentSyncTokenConfigured: Boolean(settings.environmentSyncToken),
+    },
+  });
 }
 
 export async function PUT(request: NextRequest) {

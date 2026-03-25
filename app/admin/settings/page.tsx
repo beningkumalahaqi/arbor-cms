@@ -248,7 +248,7 @@ export default function SettingsPage() {
                 Environment Sync
               </CardTitle>
               <CardDescription>
-                Configure a target environment database to enable content
+                Configure a target environment API to enable content
                 synchronization between environments.
               </CardDescription>
             </CardHeader>

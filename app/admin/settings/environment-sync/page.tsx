@@ -9,16 +9,20 @@ import { Button } from "@/components/ui";
 interface EnvironmentSyncSettings {
   environmentDatabaseUrl: string;
   environmentDatabaseToken: string;
+  environmentSyncTokenConfigured: boolean;
 }
 
 export default function EnvironmentSyncSettingsPage() {
   const [settings, setSettings] = useState<EnvironmentSyncSettings>({
     environmentDatabaseUrl: "",
     environmentDatabaseToken: "",
+    environmentSyncTokenConfigured: false,
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [generatingToken, setGeneratingToken] = useState(false);
+  const [generatedToken, setGeneratedToken] = useState("");
 
   useEffect(() => {
     fetch("/api/site-settings")
@@ -28,6 +32,9 @@ export default function EnvironmentSyncSettingsPage() {
           setSettings({
             environmentDatabaseUrl: data.settings.environmentDatabaseUrl || "",
             environmentDatabaseToken: data.settings.environmentDatabaseToken || "",
+            environmentSyncTokenConfigured: Boolean(
+              data.settings.environmentSyncTokenConfigured
+            ),
           });
         }
         setLoaded(true);
@@ -37,38 +44,63 @@ export default function EnvironmentSyncSettingsPage() {
   const handleSave = useCallback(async () => {
     setSaving(true);
     setSaved(false);
+    const payload: Record<string, string> = {
+      environmentDatabaseUrl: settings.environmentDatabaseUrl,
+    };
+    if (settings.environmentDatabaseToken.trim()) {
+      payload.environmentDatabaseToken = settings.environmentDatabaseToken;
+    }
+
     await fetch("/api/site-settings", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        environmentDatabaseUrl: settings.environmentDatabaseUrl,
-        environmentDatabaseToken: settings.environmentDatabaseToken,
-      }),
+      body: JSON.stringify(payload),
     });
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   }, [settings]);
 
+  const handleGenerateToken = useCallback(async () => {
+    setGeneratingToken(true);
+    setSaved(false);
+    try {
+      const response = await fetch("/api/environment-sync/token", {
+        method: "POST",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || "Failed to generate token.");
+      }
+      setGeneratedToken(data.token || "");
+      setSettings((current) => ({
+        ...current,
+        environmentSyncTokenConfigured: true,
+      }));
+    } finally {
+      setGeneratingToken(false);
+    }
+  }, []);
+
   return (
     <PageLayout
       title="Environment Sync Settings"
-      description="Configure a target environment database to enable content synchronization between environments."
+      description="Configure a target environment API to enable secure content synchronization between environments."
     >
       <div className="max-w-2xl space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Target Environment Database</CardTitle>
+            <CardTitle>Target Environment API</CardTitle>
             <CardDescription>
-              Provide the database connection details for the target environment.
-              This is the database that content will be synced to or from.
+              Provide the API connection details for the target environment.
+              This API receives push sync requests and serves pull sync data.
             </CardDescription>
           </CardHeader>
           {loaded && (
             <div className="space-y-5 px-6 pb-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
-                  Environment Database URL
+                  Target Environment API URL
                 </label>
                 <Input
                   type="text"
@@ -79,16 +111,16 @@ export default function EnvironmentSyncSettingsPage() {
                       environmentDatabaseUrl: e.target.value,
                     })
                   }
-                  placeholder="libsql://your-database-url.turso.io"
+                  placeholder="https://target.example.com"
                 />
                 <p className="text-xs text-muted-foreground">
-                  The URL of the target environment database (e.g., a LibSQL or Turso URL)
+                  The base URL of the target Arbor CMS environment (must include http:// or https://)
                 </p>
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
-                  Environment Database Token
+                  Target Environment API Token
                 </label>
                 <Input
                   type="password"
@@ -99,11 +131,56 @@ export default function EnvironmentSyncSettingsPage() {
                       environmentDatabaseToken: e.target.value,
                     })
                   }
-                  placeholder="Enter database authentication token"
+                  placeholder="Enter target environment sync token"
                 />
                 <p className="text-xs text-muted-foreground">
-                  The authentication token for the target database (leave empty if not required)
+                  Bearer token sent to the target environment API. Copy the token from the target environment settings page and leave this blank to keep the existing value.
                 </p>
+              </div>
+
+              <div className="space-y-2 rounded-md border p-4">
+                <label className="text-sm font-medium text-foreground">
+                  This Environment API Token
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  This token secures this environment&apos;s `/api/environment-sync/*` endpoints.
+                </p>
+                {settings.environmentSyncTokenConfigured ? (
+                  <p className="text-xs text-muted-foreground">
+                    Current token: ••••••••••••••••••••••••••••••••
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    No token generated yet.
+                  </p>
+                )}
+                {generatedToken && (
+                  <div className="space-y-2">
+                    <Input
+                      type="text"
+                      readOnly
+                      value={generatedToken}
+                      aria-label="Generated environment sync token"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Copy this token now. For security, it is only shown immediately after generation.
+                    </p>
+                  </div>
+                )}
+                <div className="flex items-center gap-3">
+                  <Button
+                    type="button"
+                    variant={settings.environmentSyncTokenConfigured ? "outline" : "default"}
+                    onClick={handleGenerateToken}
+                    disabled={generatingToken}
+                  >
+                    {generatingToken
+                      ? "Generating..."
+                      : settings.environmentSyncTokenConfigured
+                        ? "Regenerate Token"
+                        : "Generate Token"}
+                  </Button>
+                </div>
               </div>
 
               <div className="flex items-center gap-3">
