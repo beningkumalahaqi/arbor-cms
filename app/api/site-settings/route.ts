@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
+import { parseDashboardModules } from "@/lib/admin/dashboard-modules";
 
 export async function GET() {
   const session = await getSession();
@@ -19,6 +20,7 @@ export async function GET() {
           footerEnabled: 1,
           footerLogo: "",
           footerText: "",
+          dashboardModules: "[]",
           environmentDatabaseUrl: "",
           environmentDatabaseToken: "",
           environmentSyncTokenConfigured: false,
@@ -49,6 +51,7 @@ export async function PUT(request: NextRequest) {
     footerEnabled,
     footerLogo,
     footerText,
+    dashboardModules,
     environmentDatabaseUrl,
     environmentDatabaseToken,
   } = body;
@@ -72,6 +75,15 @@ export async function PUT(request: NextRequest) {
   }
   if (footerText !== undefined) {
     updateData.footerText = String(footerText);
+  }
+  if (dashboardModules !== undefined) {
+    const serializedModules = typeof dashboardModules === "string"
+      ? dashboardModules
+      : JSON.stringify(dashboardModules);
+
+    updateData.dashboardModules = JSON.stringify(
+      parseDashboardModules(serializedModules)
+    );
   }
   if (environmentDatabaseUrl !== undefined) {
     updateData.environmentDatabaseUrl = String(environmentDatabaseUrl);
@@ -97,6 +109,7 @@ export async function PUT(request: NextRequest) {
         footerEnabled?: number;
         footerLogo?: string;
         footerText?: string;
+        dashboardModules?: string;
         environmentDatabaseUrl?: string;
         environmentDatabaseToken?: string;
       },

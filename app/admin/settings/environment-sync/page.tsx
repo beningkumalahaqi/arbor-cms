@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { PageLayout } from "@/components/ui";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -88,6 +89,11 @@ export default function EnvironmentSyncSettingsPage() {
       description="Configure a target environment API to enable secure content synchronization between environments."
     >
       <div className="max-w-2xl space-y-6">
+        <div>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/admin/settings">Back to Settings</Link>
+          </Button>
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>Target Environment API</CardTitle>
