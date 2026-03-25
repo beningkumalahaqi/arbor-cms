@@ -272,9 +272,10 @@ async function applySyncPayload(target: PrismaClient, payload: SyncPayload): Pro
     await target.page.create({ data: { id: page.id, ...data } });
   }
 
-  const existingPageIds = new Set(
-    (await target.page.findMany({ select: { id: true } })).map((page) => page.id)
-  );
+  const payloadPagePathById = new Map(payload.pages.map((page) => [page.id, page.fullPath]));
+  const targetPages = await target.page.findMany({ select: { id: true, fullPath: true } });
+  const existingPageIds = new Set(targetPages.map((page) => page.id));
+  const targetPageIdByPath = new Map(targetPages.map((page) => [page.fullPath, page.id]));
   const syncedWidgetIds = new Set(
     (await target.widget.findMany({ select: { id: true } })).map((widget) => widget.id)
   );
@@ -283,7 +284,18 @@ async function applySyncPayload(target: PrismaClient, payload: SyncPayload): Pro
     widget: SyncPayload["widgets"][number],
     parentIdOverride: string | null = widget.parentId
   ): Promise<boolean> {
-    if (!existingPageIds.has(widget.pageId)) {
+    let resolvedPageId = widget.pageId;
+    if (!existingPageIds.has(resolvedPageId)) {
+      const sourcePagePath = payloadPagePathById.get(widget.pageId);
+      if (sourcePagePath) {
+        const mappedTargetPageId = targetPageIdByPath.get(sourcePagePath);
+        if (mappedTargetPageId) {
+          resolvedPageId = mappedTargetPageId;
+        }
+      }
+    }
+
+    if (!existingPageIds.has(resolvedPageId)) {
       console.warn(
         `[environment-sync] Skipping widget ${widget.id}: page ${widget.pageId} does not exist on target.`
       );
@@ -294,7 +306,7 @@ async function applySyncPayload(target: PrismaClient, payload: SyncPayload): Pro
       where: { id: widget.id },
       create: {
         id: widget.id,
-        pageId: widget.pageId,
+        pageId: resolvedPageId,
         area: widget.area,
         type: widget.type,
         props: widget.props,
@@ -303,7 +315,7 @@ async function applySyncPayload(target: PrismaClient, payload: SyncPayload): Pro
         slot: widget.slot,
       },
       update: {
-        pageId: widget.pageId,
+        pageId: resolvedPageId,
         area: widget.area,
         type: widget.type,
         props: widget.props,

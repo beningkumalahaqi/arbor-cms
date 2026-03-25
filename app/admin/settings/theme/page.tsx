@@ -1,0 +1,76 @@
+"use client";
+
+import Link from "next/link";
+import { useTheme, type Theme } from "@/components/theme-provider";
+import { Button, PageLayout } from "@/components/ui";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+const themeOptions: { value: Theme; label: string }[] = [
+  { value: "auto", label: "Auto" },
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+];
+
+function ThemeSelector({
+  value,
+  onChange,
+}: {
+  value: Theme;
+  onChange: (theme: Theme) => void;
+}) {
+  return (
+    <div className="flex gap-2 rounded-lg border bg-muted/50 p-1">
+      {themeOptions.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          onClick={() => onChange(option.value)}
+          className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+            value === option.value
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export default function ThemeSettingsPage() {
+  const { adminTheme, siteTheme, setAdminTheme, setSiteTheme } = useTheme();
+
+  return (
+    <PageLayout
+      title="Theme Settings"
+      description="Control the admin and live site themes independently."
+    >
+      <div className="max-w-2xl space-y-6">
+        <div>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/admin/settings">Back to Settings</Link>
+          </Button>
+        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Theme</CardTitle>
+            <CardDescription>
+              Auto follows your operating system preference.
+            </CardDescription>
+          </CardHeader>
+          <div className="space-y-5 px-6 pb-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">CMS Admin</label>
+              <ThemeSelector value={adminTheme} onChange={setAdminTheme} />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Live Site</label>
+              <ThemeSelector value={siteTheme} onChange={setSiteTheme} />
+            </div>
+          </div>
+        </Card>
+      </div>
+    </PageLayout>
+  );
+}
