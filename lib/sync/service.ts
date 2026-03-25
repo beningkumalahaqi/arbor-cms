@@ -272,7 +272,24 @@ async function applySyncPayload(target: PrismaClient, payload: SyncPayload): Pro
     await target.page.create({ data: { id: page.id, ...data } });
   }
 
-  for (const widget of payload.widgets) {
+  const existingPageIds = new Set(
+    (await target.page.findMany({ select: { id: true } })).map((page) => page.id)
+  );
+  const syncedWidgetIds = new Set(
+    (await target.widget.findMany({ select: { id: true } })).map((widget) => widget.id)
+  );
+
+  async function upsertWidget(
+    widget: SyncPayload["widgets"][number],
+    parentIdOverride: string | null = widget.parentId
+  ): Promise<boolean> {
+    if (!existingPageIds.has(widget.pageId)) {
+      console.warn(
+        `[environment-sync] Skipping widget ${widget.id}: page ${widget.pageId} does not exist on target.`
+      );
+      return false;
+    }
+
     await target.widget.upsert({
       where: { id: widget.id },
       create: {
@@ -282,7 +299,7 @@ async function applySyncPayload(target: PrismaClient, payload: SyncPayload): Pro
         type: widget.type,
         props: widget.props,
         sortOrder: widget.sortOrder,
-        parentId: widget.parentId,
+        parentId: parentIdOverride,
         slot: widget.slot,
       },
       update: {
@@ -291,10 +308,47 @@ async function applySyncPayload(target: PrismaClient, payload: SyncPayload): Pro
         type: widget.type,
         props: widget.props,
         sortOrder: widget.sortOrder,
-        parentId: widget.parentId,
+        parentId: parentIdOverride,
         slot: widget.slot,
       },
     });
+
+    syncedWidgetIds.add(widget.id);
+    return true;
+  }
+
+  const rootWidgets = payload.widgets.filter((widget) => !widget.parentId);
+  const pendingWidgets = payload.widgets.filter((widget) => Boolean(widget.parentId));
+
+  for (const widget of rootWidgets) {
+    await upsertWidget(widget, null);
+  }
+
+  let madeProgress = true;
+  while (pendingWidgets.length > 0 && madeProgress) {
+    madeProgress = false;
+
+    for (let index = pendingWidgets.length - 1; index >= 0; index -= 1) {
+      const widget = pendingWidgets[index];
+      const parentId = widget.parentId;
+      if (!parentId || !syncedWidgetIds.has(parentId)) {
+        continue;
+      }
+
+      const synced = await upsertWidget(widget);
+      if (synced) {
+        pendingWidgets.splice(index, 1);
+        madeProgress = true;
+      }
+    }
+  }
+
+  // As a safety fallback for inconsistent data, detach unresolved widgets from missing parents.
+  for (const widget of pendingWidgets) {
+    console.warn(
+      `[environment-sync] Widget ${widget.id} references missing parent ${widget.parentId}; syncing as root widget.`
+    );
+    await upsertWidget(widget, null);
   }
 
   for (const formType of payload.formTypes) {

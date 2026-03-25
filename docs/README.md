@@ -146,7 +146,8 @@ guide/            → Developer guides for extending the CMS
 
 ## Release Notes
 
-- [v2.2.0-update](v2.2.0-update.md) — Environment Sync API token generation moved to target environment settings; transport auth now validates against DB-stored token
+- [v2.2.1](v2.2.1-update.md)
+- [v2.2.0](v2.2.0-update.md)
 - [v2.1.0](v2.1.0-update.md)
 - [v2.0.0](v2.0.0-update.md)
 - [v1.5.0](v1.5.0-update.md)
