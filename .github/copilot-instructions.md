@@ -71,9 +71,9 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - Indexed on: `path`
 
 ### SiteSettings
-- `id` (cuid), `navigationEnabled` (int, default 1), `navigationLogo` (string), `navigationTitle` (string, default "Arbor CMS"), `footerEnabled` (int, default 1), `footerLogo` (string), `footerText` (string)
+- `id` (cuid), `navigationEnabled` (int, default 1), `navigationLogo` (string), `navigationTitle` (string, default "Arbor CMS"), `footerEnabled` (int, default 1), `footerLogo` (string), `footerText` (string), `dashboardModules` (JSON string, default "[]")
 - Singleton row — only one record exists, upserted on save
-- Stores global site-wide settings for navigation and footer
+- Stores global site-wide settings for navigation, footer, environment sync, and dashboard quick access configuration
 - Managed via admin Settings page and `/api/site-settings` endpoint
 
 ### Widget
@@ -233,10 +233,21 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 
 ## Settings
 - Settings page at `/admin/settings` — extensible for future settings sections
-- Contains: Theme settings, Navigation settings, Footer settings
+- Grouped sections: **Appearance** and **General Settings**
+- **Appearance** contains: Theme and Layout
+- **Layout section** controls dashboard quick access cards: visibility (show/hide) and pinned/favorite state
+- **General Settings** contains: Navigation, Footer, Environment Sync
 - **Navigation section**: Enable/disable toggle, site title input, logo image selector (from file manager)
 - **Footer section**: Enable/disable toggle, footer text input, logo image selector (from file manager)
 - Settings navigation entry is in the admin sidebar shell
+
+## Dashboard
+- Dashboard page at `/admin` keeps the existing stats cards and adds a **Quick Access** card grid
+- Quick Access modules map to admin routes: pages, files, page types, forms, environment sync, settings
+- Card order and selection are driven by `SiteSettings.dashboardModules` (JSON string)
+- Drag-and-drop reordering uses native HTML drag events (no heavy dependency)
+- Favorite (pinned) modules are prioritized first, then ordered within their group
+- Recent Activity section is derived from `Page.updatedAt` (with `createdAt` comparison to label created vs updated)
 
 ## Site Navigation
 - Responsive navigation bar rendered on the live (public) site
@@ -282,6 +293,7 @@ This project is a custom CMS built with Next.js App Router, TypeScript, Prisma, 
 - File management via `/api/storage` (GET list, POST create/upload/rename/move, DELETE) — all backed by database
 - File serving via `/api/storage/file/[...path]` (GET with caching headers, reads from database)
 - Site settings via `/api/site-settings` (GET for read, PUT for upsert — auth required for both)
+- Dashboard quick access preferences are persisted through `/api/site-settings` via `dashboardModules`
 - Environment sync trigger/status via `/api/environment-sync` and `/api/environment-sync/status` (admin session auth)
 - Environment sync transport endpoints via `/api/environment-sync/pull` and `/api/environment-sync/push` (Bearer token auth with token generated on target environment and stored in `SiteSettings.environmentSyncToken`)
 - Public navigation data via `/api/site-navigation` (GET, no auth — returns nav items + footer config)

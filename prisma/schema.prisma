@@ -92,6 +92,7 @@ model SiteSettings {
   footerEnabled            Int      @default(1)
   footerLogo               String   @default("")
   footerText               String   @default("")
+  dashboardModules         String   @default("[]")
   environmentDatabaseUrl   String   @default("")
   environmentDatabaseToken String   @default("")
   environmentSyncToken     String   @default("")
