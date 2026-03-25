@@ -146,6 +146,7 @@ guide/            → Developer guides for extending the CMS
 
 ## Release Notes
 
+- [v2.2.3](v2.2.3-update.md)
 - [v2.2.2](v2.2.2-update.md)
 - [v2.2.1](v2.2.1-update.md)
 - [v2.2.0](v2.2.0-update.md)
